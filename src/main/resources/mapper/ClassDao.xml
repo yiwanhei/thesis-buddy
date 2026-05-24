@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.ClassDao">
+
+    <!-- 结果映射 -->
+    <resultMap id="ClassInfoResultMap" type="org.example.thesisbuddy.entity.ClassInfo">
+        <id property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+        <result property="campusId" column="campus_id"/>
+        <result property="majorId" column="major_id"/>
+        <result property="gradeId" column="grade_id"/>
+        <result property="classNo" column="class_no"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!-- 根据班级 ID 查询 -->
+    <select id="selectById" resultMap="ClassInfoResultMap">
+        SELECT class_id, class_name, campus_id, major_id, grade_id, class_no, create_time 
+        FROM class_info
+        WHERE class_id = #{classId}
+    </select>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.ConfigDao">
+    
+    <!-- 结果映射 -->
+    <resultMap id="SystemConfigResultMap" type="org.example.thesisbuddy.entity.SystemConfig">
+        <id property="configId" column="config_id"/>
+        <result property="configKey" column="config_key"/>
+        <result property="configValue" column="config_value"/>
+        <result property="configDesc" column="config_desc"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <!-- 查询所有系统配置 -->
+    <select id="selectAll" resultMap="SystemConfigResultMap">
+        SELECT config_id, config_key, config_value, config_desc, update_time
+        FROM system_config
+    </select>
+    
+    <!-- 更新配置值 -->
+    <update id="updateValue">
+        UPDATE system_config
+        SET config_value = #{value}
+        WHERE config_key = #{key}
+    </update>
+</mapper>

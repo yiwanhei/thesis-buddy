@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.StudentDao">
+
+    <!-- 结果映射 -->
+    <resultMap id="StudentAccountResultMap" type="org.example.thesisbuddy.entity.StudentAccount">
+        <id property="studentId" column="student_id"/>
+        <result property="account" column="account"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="realName" column="real_name"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="classId" column="class_id"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!-- 根据学号查询学生 -->
+    <select id="selectByAccount" resultMap="StudentAccountResultMap">
+        SELECT student_id, account, password_hash, real_name, gender, phone, class_id, status, create_time
+        FROM student_account
+        WHERE account = #{account}
+    </select>
+
+    <!-- 根据学生 ID 查询 -->
+    <select id="selectById" resultMap="StudentAccountResultMap">
+        SELECT student_id, account, password_hash, real_name, gender, phone, class_id, status, create_time
+        FROM student_account
+        WHERE student_id = #{studentId}
+    </select>
+
+    <!-- 更新密码 -->
+    <update id="updatePassword">
+        UPDATE student_account
+        SET password_hash = #{newPassword}
+        WHERE student_id = #{studentId}
+    </update>
+
+    <!-- 更新手机号 -->
+    <update id="updatePhone">
+        UPDATE student_account
+        SET phone = #{phone}
+        WHERE student_id = #{studentId}
+    </update>
+    
+    <!-- 插入学生 -->
+    <insert id="insert">
+        INSERT INTO student_account(account, password_hash, real_name, gender, class_id, status, create_time)
+        VALUES(#{account}, #{passwordHash}, #{realName}, #{gender}, #{classId}, #{status}, NOW())
+    </insert>
+    
+    <!-- 更新学生状态 -->
+    <update id="updateStatus">
+        UPDATE student_account
+        SET status = #{status}
+        WHERE student_id = #{studentId}
+    </update>
+    
+    <!-- 查询所有学生 -->
+    <select id="selectAll" resultMap="StudentAccountResultMap">
+        SELECT student_id, account, password_hash, real_name, gender, phone, class_id, status, create_time
+        FROM student_account
+    </select>
+    
+    <!-- 统计学生总数 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM student_account
+    </select>
+
+</mapper>

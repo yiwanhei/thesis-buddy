@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.TeamDao">
+    
+    <!-- 结果映射 - TeamInfo -->
+    <resultMap id="TeamInfoResultMap" type="org.example.thesisbuddy.entity.TeamInfo">
+        <id property="teamId" column="team_id"/>
+        <result property="teamName" column="team_name"/>
+        <result property="captainId" column="captain_id"/>
+        <result property="maxMembers" column="max_members"/>
+        <result property="applyTopic" column="apply_topic"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="expectedMembers" column="expected_members"/>
+        <result property="reserveUntil" column="reserve_until"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    
+    <!-- 结果映射 - TeamMember -->
+    <resultMap id="TeamMemberResultMap" type="org.example.thesisbuddy.entity.TeamMember">
+        <id property="memberId" column="member_id"/>
+        <result property="teamId" column="team_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="roleInTeam" column="role_in_team"/>
+        <result property="task" column="task"/>
+        <result property="joinTime" column="join_time"/>
+    </resultMap>
+    
+    <!-- 结果映射 - TeamInviteDTO -->
+    <resultMap id="TeamInviteDTOResultMap" type="org.example.thesisbuddy.dto.student.TeamInviteDTO">
+        <id property="id" column="invite_id"/>
+        <result property="inviterId" column="inviter_id"/>
+        <result property="inviteeId" column="invitee_id"/>
+        <result property="teamId" column="team_id"/>
+        <result property="status" column="status"/>
+    </resultMap>
+    
+    <!-- 插入组队信息 -->
+    <insert id="insertTeam" useGeneratedKeys="true" keyProperty="teamId">
+        INSERT INTO team_info(team_name, captain_id, max_members, apply_topic, expected_members, reserve_until, status, create_time)
+        VALUES(#{teamName}, #{captainId}, #{expectedMembers}, #{applyTopic}, #{expectedMembers}, 
+               DATE_ADD(NOW(), INTERVAL 30 MINUTE), #{status}, NOW())
+    </insert>
+    
+    <!-- 根据ID查询组队 -->
+    <select id="selectById" resultMap="TeamInfoResultMap">
+        SELECT team_id, team_name, captain_id, max_members, apply_topic, expected_members, reserve_until, status, create_time
+        FROM team_info
+        WHERE team_id = #{teamId}
+    </select>
+    
+    <!-- 插入队员 -->
+    <insert id="insertMember">
+        INSERT INTO team_member(team_id, student_id, role_in_team, join_time)
+        VALUES(#{teamId}, #{studentId}, #{roleInTeam}, NOW())
+    </insert>
+    
+    <!-- 查询组队的所有成员 -->
+    <select id="selectMembersByTeamId" resultType="java.util.HashMap">
+        SELECT 
+            tm.member_id,
+            tm.team_id,
+            tm.student_id,
+            tm.role_in_team,
+            tm.task,
+            tm.join_time,
+            s.real_name
+        FROM team_member tm
+        LEFT JOIN student_account s ON tm.student_id = s.student_id
+        WHERE tm.team_id = #{teamId}
+    </select>
+    
+    <!-- 检查学生是否已是队员 -->
+    <select id="isMember" resultType="boolean">
+        SELECT COUNT(*) FROM team_member
+        WHERE team_id = #{teamId} AND student_id = #{studentId}
+    </select>
+    
+    <!-- 插入组队邀请 -->
+    <insert id="insertInvite">
+        INSERT INTO team_invite(team_id, inviter_id, invitee_id, status)
+        VALUES(#{teamId}, #{inviterId}, #{inviteeId}, 'pending')
+    </insert>
+    
+    <!-- 更新邀请状态 -->
+    <update id="updateInviteStatus">
+        UPDATE team_invite
+        SET status = #{action}
+        WHERE invite_id = #{inviteId}
+    </update>
+    
+    <!-- 查询学生收到的邀请 -->
+    <select id="selectInvitesByStudent" resultMap="TeamInviteDTOResultMap">
+        SELECT invite_id, inviter_id, invitee_id, team_id, status
+        FROM team_invite
+        WHERE invitee_id = #{studentId}
+        AND status = 'pending'
+    </select>
+    
+    <!-- 根据邀请ID查询邀请信息 -->
+    <select id="selectInviteById" resultMap="TeamInviteDTOResultMap">
+        SELECT invite_id, inviter_id, invitee_id, team_id, status
+        FROM team_invite
+        WHERE invite_id = #{inviteId}
+    </select>
+    
+    <!-- 删除队员 -->
+    <delete id="deleteMember">
+        DELETE FROM team_member
+        WHERE team_id = #{teamId} AND student_id = #{studentId}
+    </delete>
+    
+    <!-- 根据学生ID查询所在队伍（作为队长） -->
+    <select id="selectTeamByCaptainId" resultMap="TeamInfoResultMap">
+        SELECT team_id, team_name, captain_id, max_members, apply_topic, expected_members, reserve_until, status, create_time
+        FROM team_info
+        WHERE captain_id = #{captainId}
+    </select>
+    
+    <!-- 根据学生ID查询所在队伍（作为队员） -->
+    <select id="selectTeamByMemberId" resultMap="TeamInfoResultMap">
+        SELECT t.team_id, t.team_name, t.captain_id, t.max_members, t.apply_topic, t.expected_members, t.reserve_until, t.status, t.create_time
+        FROM team_info t
+        INNER JOIN team_member m ON t.team_id = m.team_id
+        WHERE m.student_id = #{studentId}
+    </select>
+    
+    <!-- 查询队伍的成员数量 -->
+    <select id="countMembersByTeamId" resultType="int">
+        SELECT COUNT(*) FROM team_member
+        WHERE team_id = #{teamId}
+    </select>
+    
+    <!-- 查询所有已过期的队伍（创建时间超过30分钟且状态为forming） -->
+    <select id="selectExpiredTeams" resultMap="TeamInfoResultMap">
+        SELECT team_id, team_name, captain_id, max_members, apply_topic, expected_members, reserve_until, status, create_time
+        FROM team_info
+        WHERE status = 'forming'
+        AND create_time &lt; DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+    </select>
+    
+    <!-- 更新队伍状态 -->
+    <update id="updateTeamStatus">
+        UPDATE team_info
+        SET status = #{status}
+        WHERE team_id = #{teamId}
+    </update>
+    
+    <!-- 删除队伍的所有成员 -->
+    <delete id="deleteAllMembers">
+        DELETE FROM team_member
+        WHERE team_id = #{teamId}
+    </delete>
+    
+    <!-- 删除队伍 -->
+    <delete id="deleteTeam">
+        DELETE FROM team_info
+        WHERE team_id = #{teamId}
+    </delete>
+    
+    <!-- 更新队伍信息（队名和最大人数） -->
+    <update id="updateTeamInfo">
+        UPDATE team_info
+        SET team_name = #{teamName}, max_members = #{maxMembers}
+        WHERE team_id = #{teamId}
+    </update>
+    
+    <!-- 搜索队伍（通过队长学号或选题名称，限制同班级） -->
+    <select id="searchTeams" resultMap="TeamInfoResultMap">
+        SELECT t.team_id, t.team_name, t.captain_id, t.max_members, t.apply_topic, 
+               t.expected_members, t.reserve_until, t.status, t.create_time
+        FROM team_info t
+        INNER JOIN student_account captain ON t.captain_id = captain.student_id
+        WHERE t.status = 'forming'
+        AND captain.class_id = #{classId}
+        AND (t.apply_topic LIKE CONCAT('%', #{keyword}, '%')
+             OR t.captain_id LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY t.create_time DESC
+    </select>
+    
+    <!-- 查询队伍的加入请求 -->
+    <select id="selectJoinRequests" resultType="java.util.HashMap">
+        SELECT 
+            jr.id,
+            jr.student_id,
+            s.real_name as studentName,
+            jr.reason,
+            jr.status,
+            jr.create_time
+        FROM team_join_request jr
+        JOIN student_account s ON jr.student_id = s.student_id
+        WHERE jr.team_id = #{teamId}
+        AND jr.status = 'pending'
+        ORDER BY jr.create_time DESC
+    </select>
+    
+    <!-- 插入加入请求 -->
+    <insert id="insertJoinRequest">
+        INSERT INTO team_join_request(team_id, student_id, reason, status)
+        VALUES(#{teamId}, #{studentId}, #{reason}, 'pending')
+    </insert>
+    
+    <!-- 更新加入请求状态 -->
+    <update id="updateJoinRequestStatus">
+        UPDATE team_join_request
+        SET status = #{status}
+        WHERE id = #{requestId}
+    </update>
+    
+    <!-- 查询学生信息（用于搜索同班学生） -->
+    <select id="searchStudents" resultType="java.util.HashMap">
+        SELECT 
+            student_id,
+            real_name,
+            class_id
+        FROM student_account
+        WHERE class_id = #{classId}
+        AND (student_id LIKE CONCAT('%', #{keyword}, '%')
+             OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+        LIMIT 20
+    </select>
+    
+    <!-- 更新成员职责 -->
+    <update id="updateMemberTask">
+        UPDATE team_member
+        SET task = #{task}
+        WHERE team_id = #{teamId} AND student_id = #{studentId}
+    </update>
+    
+    <!-- 根据学生ID查询学生姓名 -->
+    <select id="selectStudentName" resultType="string">
+        SELECT real_name FROM student_account
+        WHERE student_id = #{studentId}
+    </select>
+    
+    <!-- 查询学生的班级ID -->
+    <select id="selectStudentClassId" resultType="integer">
+        SELECT class_id FROM student_account
+        WHERE student_id = #{studentId}
+    </select>
+</mapper>
