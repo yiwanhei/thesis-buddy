@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.TopicDao">
+
+    <resultMap id="TopicLibraryResultMap" type="org.example.thesisbuddy.entity.TopicLibrary">
+        <id property="topicId" column="topic_id"/>
+        <result property="topicName" column="topic_name"/>
+        <result property="category" column="category"/>
+        <result property="resultForm" column="result_form"/>
+        <result property="maxCapacity" column="max_capacity"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="TopicLibraryResultMap">
+        SELECT topic_id, topic_name, category, result_form, max_capacity, status, create_time
+        FROM topic_library
+        ORDER BY topic_id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectByCategory" resultMap="TopicLibraryResultMap">
+        SELECT topic_id, topic_name, category, result_form, max_capacity, status, create_time
+        FROM topic_library
+        WHERE category = #{category}
+        ORDER BY topic_id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM topic_library
+    </select>
+
+    <select id="countByCategory" resultType="int">
+        SELECT COUNT(*) FROM topic_library
+        WHERE category = #{category}
+    </select>
+
+    <select id="selectById" resultMap="TopicLibraryResultMap">
+        SELECT topic_id, topic_name, category, result_form, max_capacity, status, create_time
+        FROM topic_library
+        WHERE topic_id = #{topicId}
+    </select>
+
+    <select id="selectRemainingCount" resultType="int">
+        SELECT t.max_capacity - COALESCE(occ.occupied_cnt, 0) AS remaining
+        FROM topic_library t
+        LEFT JOIN (
+            SELECT topic_id, COUNT(*) AS occupied_cnt
+            FROM thesis_application
+            WHERE application_status IN (1, 2, 3) AND topic_id = #{topicId}
+            GROUP BY topic_id
+        ) occ ON t.topic_id = occ.topic_id
+        WHERE t.topic_id = #{topicId}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO topic_library(topic_name, category, result_form, max_capacity, status, create_time)
+        VALUES(#{topicName}, #{category}, #{resultForm}, #{maxCapacity}, #{status}, #{createTime})
+    </insert>
+    
+    <update id="updateStatus">
+        UPDATE topic_library
+        SET status = #{status}
+        WHERE topic_id = #{topicId}
+    </update>
+    
+    <select id="selectStatsByTeacher" resultType="java.util.HashMap">
+        SELECT COUNT(*) as total,
+        SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open_count,
+        SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed_count
+        FROM topic_library
+        WHERE teacher_id = #{teacherId}
+    </select>
+    
+    <select id="selectAvailableTopics" resultMap="TopicLibraryResultMap">
+        SELECT t.topic_id, t.topic_name, t.category, t.result_form, t.max_capacity, t.status, t.create_time
+        FROM topic_library t
+        LEFT JOIN (
+            SELECT topic_id, COUNT(*) AS occupied_cnt
+            FROM thesis_application
+            WHERE application_status IN (1, 2, 3)
+            GROUP BY topic_id
+        ) occ ON t.topic_id = occ.topic_id
+        WHERE t.status = 'open'
+        AND (t.max_capacity - COALESCE(occ.occupied_cnt, 0)) > 0
+        ORDER BY t.topic_id
+    </select>
+
+</mapper>

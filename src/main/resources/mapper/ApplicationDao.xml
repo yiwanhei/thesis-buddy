@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.thesisbuddy.dao.ApplicationDao">
+    
+    <resultMap id="ThesisApplicationResultMap" type="org.example.thesisbuddy.entity.ThesisApplication">
+        <id property="applicationId" column="application_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="topicId" column="topic_id"/>
+        <result property="teamId" column="team_id"/>
+        <result property="applyType" column="apply_type"/>
+        <result property="applicationStatus" column="application_status"/>
+        <result property="isLocked" column="is_locked"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="reviewTime" column="review_time"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="remark" column="remark"/>
+        <result property="reserveUntil" column="reserve_until"/>
+    </resultMap>
+    
+    <select id="selectByStudentId" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark
+        FROM thesis_application
+        WHERE student_id = #{studentId}
+    </select>
+    
+    <select id="selectById" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark
+        FROM thesis_application
+        WHERE application_id = #{applicationId}
+    </select>
+    
+    <insert id="insert">
+        INSERT INTO thesis_application(student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, reserve_until)
+        VALUES(#{studentId}, #{topicId}, #{teamId}, #{applyType}, #{applicationStatus}, #{isLocked}, #{applyTime}, #{reserveUntil})
+    </insert>
+    
+    <delete id="deleteById">
+        DELETE FROM thesis_application
+        WHERE application_id = #{applicationId}
+    </delete>
+    
+    <select id="selectPendingByTeacher" resultMap="ThesisApplicationResultMap">
+        SELECT ta.application_id, ta.student_id, ta.topic_id, ta.team_id, ta.apply_type, ta.application_status, ta.is_locked, ta.apply_time, ta.review_time, ta.reviewer_id, ta.remark
+        FROM thesis_application ta
+        JOIN topic_library tl ON ta.topic_id = tl.topic_id
+        WHERE tl.teacher_id = #{teacherId} AND ta.application_status = 1
+    </select>
+    
+    <update id="updateStatus">
+        UPDATE thesis_application
+        SET application_status = #{applicationStatus},
+            review_time = NOW(),
+            reviewer_id = #{reviewerId},
+            remark = #{remark}
+        WHERE application_id = #{applicationId}
+    </update>
+    
+    <select id="selectHistoryByTeacher" resultMap="ThesisApplicationResultMap">
+        SELECT ta.application_id, ta.student_id, ta.topic_id, ta.team_id, ta.apply_type, ta.application_status, ta.is_locked, ta.apply_time, ta.review_time, ta.reviewer_id, ta.remark
+        FROM thesis_application ta
+        JOIN topic_library tl ON ta.topic_id = tl.topic_id
+        WHERE tl.teacher_id = #{teacherId} AND ta.application_status != 1
+    </select>
+
+    <select id="countApprovedByTopic" resultType="int">
+        SELECT COUNT(*) FROM thesis_application
+        WHERE topic_id = #{topicId} AND application_status = 2
+    </select>
+
+    <select id="countReservedByTopic" resultType="int">
+        SELECT COUNT(*) FROM thesis_application
+        WHERE topic_id = #{topicId} AND application_status = 1
+    </select>
+
+    <select id="selectReservedByTopic" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark
+        FROM thesis_application
+        WHERE topic_id = #{topicId} AND application_status = 1
+    </select>
+
+    <update id="batchResetReserved">
+        UPDATE thesis_application
+        SET application_status = 0, remark = '每日00:00自动重置'
+        WHERE application_status = 1 AND DATE(apply_time) &lt; CURDATE()
+    </update>
+
+    <update id="releaseReservedSlots">
+        UPDATE thesis_application
+        SET application_status = 0, remark = #{remark}
+        WHERE topic_id = #{topicId} AND application_status = 1
+    </update>
+    
+    <!-- 释放指定队伍的预占名额：保留第一个预占记录，释放其余的 -->
+    <update id="releaseTeamReservedSlots">
+        UPDATE thesis_application
+        SET application_status = 0, remark = #{remark}
+        WHERE team_id = #{teamId} 
+        AND topic_id = #{topicId} 
+        AND application_status = 1
+        AND application_id NOT IN (
+            SELECT application_id FROM (
+                SELECT application_id 
+                FROM thesis_application 
+                WHERE team_id = #{teamId} 
+                AND topic_id = #{topicId} 
+                AND application_status = 1
+                ORDER BY application_id ASC
+                LIMIT 1
+            ) AS temp
+        )
+    </update>
+    
+    <!-- 释放指定学生的预占记录 -->
+    <update id="releaseStudentReservation">
+        UPDATE thesis_application
+        SET application_status = 0, remark = #{remark}
+        WHERE student_id = #{studentId} AND application_status = 1
+    </update>
+    
+    <!-- 释放队伍所有成员的预占记录 -->
+    <update id="releaseTeamAllReservations">
+        UPDATE thesis_application ta
+        JOIN team_member tm ON ta.student_id = tm.student_id
+        SET ta.application_status = 0, ta.remark = #{remark}
+        WHERE tm.team_id = #{teamId} AND ta.application_status = 1 AND ta.team_id = #{teamId}
+    </update>
+    
+    <!-- 查询学生的预占记录（按学生ID和状态） -->
+    <select id="selectByStudentIdAndStatus" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark, reserve_until
+        FROM thesis_application
+        WHERE student_id = #{studentId} AND application_status = #{status}
+        LIMIT 1
+    </select>
+    
+    <!-- ========== v2 新增方法 ========== -->
+    
+    <!-- 查询某个题目的已占用名额数（预占中1+审核中2+已通过3） -->
+    <select id="countOccupiedByTopic" resultType="int">
+        SELECT COUNT(*) FROM thesis_application
+        WHERE topic_id = #{topicId} AND application_status IN (1, 2, 3)
+    </select>
+    
+    <!-- 查询所有超时的预占记录 -->
+    <select id="selectExpiredReservations" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark, reserve_until
+        FROM thesis_application
+        WHERE application_status = 1 AND reserve_until IS NOT NULL AND reserve_until &lt; NOW()
+    </select>
+    
+    <!-- 批量释放所有超时预占 -->
+    <update id="batchReleaseExpiredReservations">
+        UPDATE thesis_application
+        SET application_status = 0, remark = '预占30分钟超时自动释放'
+        WHERE application_status = 1 AND reserve_until IS NOT NULL AND reserve_until &lt; NOW()
+    </update>
+    
+    <!-- 批量更新队伍下所有预占记录的reserve_until -->
+    <update id="updateReserveUntilByTeam">
+        UPDATE thesis_application
+        SET reserve_until = #{reserveUntil}
+        WHERE team_id = #{teamId} AND application_status = 1
+    </update>
+    
+    <!-- 批量更新队伍下指定学生的reserve_until -->
+    <update id="updateReserveUntilByTeamAndStudents">
+        UPDATE thesis_application
+        SET reserve_until = #{reserveUntil}
+        WHERE team_id = #{teamId} AND application_status = 1
+        AND student_id IN
+        <foreach collection="studentIds" item="sid" open="(" close=")" separator=",">
+            #{sid}
+        </foreach>
+    </update>
+    
+    <!-- 查询队伍下所有指定状态的申请记录 -->
+    <select id="selectByTeamIdAndStatus" resultMap="ThesisApplicationResultMap">
+        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark, reserve_until
+        FROM thesis_application
+        WHERE team_id = #{teamId} AND application_status = #{status}
+    </select>
+    
+    <!-- 批量更新队伍下某状态申请为另一状态（限定学生列表） -->
+    <update id="batchUpdateStatusByTeam">
+        UPDATE thesis_application
+        SET application_status = #{newStatus}, remark = #{remark}
+        WHERE team_id = #{teamId} AND application_status = #{oldStatus}
+        AND student_id IN
+        <foreach collection="studentIds" item="sid" open="(" close=")" separator=",">
+            #{sid}
+        </foreach>
+    </update>
+    
+    <!-- 释放队伍中不在指定学生列表中的预占记录 -->
+    <update id="releaseExcessByTeam">
+        UPDATE thesis_application
+        SET application_status = 0, remark = #{remark}
+        WHERE team_id = #{teamId} AND application_status = 1
+        AND student_id NOT IN
+        <foreach collection="studentIds" item="sid" open="(" close=")" separator=",">
+            #{sid}
+        </foreach>
+    </update>
+    
+    <!-- 将占位记录（student_id=-1）分配给真实学生，限制1条 -->
+    <update id="assignPlaceholder">
+        UPDATE thesis_application
+        SET student_id = #{newStudentId}, reserve_until = #{reserveUntil}
+        WHERE team_id = #{teamId} AND student_id = -1 AND application_status = 1
+        LIMIT 1
+    </update>
+</mapper>
