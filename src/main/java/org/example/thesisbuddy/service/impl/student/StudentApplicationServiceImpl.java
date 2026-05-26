@@ -87,6 +87,7 @@ public class StudentApplicationServiceImpl implements StudentApplicationService 
             app.setIsLocked(0);
             app.setApplyTime(LocalDateTime.now());
             app.setReserveUntil(LocalDateTime.now().plusMinutes(30));
+            app.setRemark(applyDTO.getApplyReason());
             int rows = applicationDao.insert(app);
             return rows > 0 ? Result.success("申请成功，名额已保留30分钟") : Result.error("提交失败");
         }

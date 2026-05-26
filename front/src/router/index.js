@@ -1,3 +1,4 @@
+/* jshint esversion: 11, asi: true, unused: false, strict: false, module: true */
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
@@ -20,11 +21,6 @@ const router = createRouter({
           component: () => import('../views/student/TopicListView.vue'),
         },
         {
-          path: 'profile',
-          name: 'Profile',
-          component: () => import('../views/student/ProfileView.vue'),
-        },
-        {
           path: 'team',
           name: 'Team',
           component: () => import('../views/student/TeamView.vue'),
@@ -40,7 +36,7 @@ const router = createRouter({
 })
 
 // 路由守卫：检查登录状态和过期时间
-router.beforeEach((to, from) => {
+router.beforeEach((to, _from) => {
   // 如果访问登录页，直接放行
   if (to.path === '/login') {
     return true

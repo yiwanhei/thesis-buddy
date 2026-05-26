@@ -17,7 +17,7 @@ public interface ApplicationDao {
     
     int insert(ThesisApplication application);
     
-    int deleteById(int applicationId);
+
     
     List<ThesisApplication> selectPendingByTeacher(int teacherId);
     
@@ -25,18 +25,9 @@ public interface ApplicationDao {
     
     List<ThesisApplication> selectHistoryByTeacher(int teacherId);
     
-    int countApprovedByTopic(@Param("topicId") Integer topicId);
-    
-    int countReservedByTopic(@Param("topicId") Integer topicId);
-    
-    List<ThesisApplication> selectReservedByTopic(@Param("topicId") Integer topicId);
-    
-    int batchResetReserved();
     
     int releaseReservedSlots(@Param("topicId") Integer topicId, @Param("remark") String remark);
     
-    // 释放指定队伍的预占名额（保留第一个，释放其余的）
-    int releaseTeamReservedSlots(@Param("teamId") Integer teamId, @Param("topicId") Integer topicId, @Param("remark") String remark);
     
     // 释放指定学生的预占记录
     int releaseStudentReservation(@Param("studentId") Integer studentId, @Param("remark") String remark);
@@ -52,15 +43,10 @@ public interface ApplicationDao {
     // 查询某个题目的已占用名额数（预占中1+审核中2+已通过3）
     int countOccupiedByTopic(@Param("topicId") Integer topicId);
     
-    // 查询所有超时的预占记录（reserve_until < NOW() AND status=1）
-    List<ThesisApplication> selectExpiredReservations();
     
     // 批量释放所有超时预占（reserve_until < NOW() AND status=1 → status=0）
     int batchReleaseExpiredReservations();
     
-    // 批量更新队伍下所有预占记录的reserve_until
-    int updateReserveUntilByTeam(@Param("teamId") Integer teamId,
-                                 @Param("reserveUntil") LocalDateTime reserveUntil);
     
     // 批量更新队伍下指定学生的reserve_until
     int updateReserveUntilByTeamAndStudents(@Param("teamId") Integer teamId,
