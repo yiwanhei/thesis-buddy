@@ -26,70 +26,145 @@
       </div>
     </div>
     
-    <!-- 消息区域（所有学生可见，包括单人学生） -->
+    <!-- 消息区域（三标签切换） -->
     <div class="section message-section">
       <h3>消息与邀请</h3>
       
-      <!-- 队长专属：搜索并邀请同学 -->
-      <div v-if="isCaptain" class="invite-student">
-        <h4>邀请同班同学</h4>
-        <p class="search-hint">搜索未提交申请的冋班同学</p>
-        <div class="search-box">
-          <input
-            v-model="searchKeyword"
-            type="text"
-            placeholder="输入学号或姓名搜索"
-            @input="handleSearch"
-          />
-          <button @click="handleSearch" class="btn-search">搜索</button>
-        </div>
-
-        <div v-if="searchResults.length > 0" class="search-results">
-          <div v-for="student in searchResults" :key="student.student_id || student.studentId" class="student-item">
-            <span>{{ student.real_name || student.realName }} ({{ student.student_id || student.studentId }})</span>
-            <button @click="inviteStudent(student)" class="btn-invite">邀请</button>
-          </div>
-        </div>
+      <!-- 标签栏 -->
+      <div class="tabs">
+        <button 
+          :class="['tab-btn', { active: activeTab === 'invite' }]"
+          @click="activeTab = 'invite'">
+          邀请
+          <span v-if="inviteCount > 0" class="badge">{{ inviteCount }}</span>
+        </button>
+        <button 
+          :class="['tab-btn', { active: activeTab === 'apply' }]"
+          @click="activeTab = 'apply'">
+          申请
+          <span v-if="applyCount > 0" class="badge">{{ applyCount }}</span>
+        </button>
+        <button 
+          :class="['tab-btn', { active: activeTab === 'other' }]"
+          @click="activeTab = 'other'">
+          其他
+        </button>
       </div>
       
-      <!-- 队长专属：加入请求列表 -->
-      <div v-if="isCaptain" class="request-list">
-        <h4>加入申请</h4>
-        <div v-if="joinRequests.length === 0" class="empty-tip">暂无申请</div>
-        <div v-else class="request-items">
-          <div v-for="req in joinRequests" :key="req.id" class="request-item">
-            <div class="request-info">
-              <p><strong>申请人：</strong>{{ req.studentName }}</p>
-              <p><strong>学号：</strong>{{ req.student_id }}</p>
-              <p v-if="req.reason"><strong>申请理由：</strong>{{ req.reason }}</p>
-              <p v-else><em>无申请理由</em></p>
+      <!-- ====== 邀请 Tab ====== -->
+      <div v-if="activeTab === 'invite'" class="tab-content">
+        <!-- 队长：搜索邀请同学 + 已发邀请 -->
+        <template v-if="isCaptain">
+          <div class="invite-student">
+            <h4>邀请同班同学</h4>
+            <div class="search-box">
+              <input
+                v-model="searchKeyword"
+                type="text"
+                placeholder="输入学号或姓名搜索"
+                @input="handleSearch"
+              />
+              <button @click="handleSearch" class="btn-search">搜索</button>
             </div>
-            <div class="request-actions">
-              <button @click="handleJoinRequest(req, 'accept')" class="btn-accept">同意</button>
-              <button @click="handleJoinRequest(req, 'reject')" class="btn-reject">拒绝</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 所有学生可见：收到的邀请 -->
-      <div class="invite-received">
-        <h4>收到的邀请</h4>
-        <div v-if="receivedInvites.length === 0" class="empty-tip">暂无邀请</div>
-        <div v-else class="invite-items">
-          <div v-for="invite in receivedInvites" :key="invite.inviteId" class="invite-item">
-            <p>{{ formatInviteContent(invite) }}</p>
-            <div class="invite-actions">
-              <button @click="handleInvite(invite, 'accept')" class="btn-accept">接受</button>
-              <button @click="handleInvite(invite, 'reject')" class="btn-reject">拒绝</button>
+            <div v-if="searchResults.length > 0" class="search-results">
+              <div v-for="student in searchResults" :key="student.student_id || student.studentId" class="student-item">
+                <span>{{ student.real_name || student.realName }} ({{ student.student_id || student.studentId }})</span>
+                <button @click="inviteStudent(student)" class="btn-invite">邀请</button>
+              </div>
             </div>
           </div>
-        </div>
+          <div class="sent-invites">
+            <h4>已发送的邀请</h4>
+            <div v-if="sentInvites.length === 0" class="empty-tip">暂无已发送邀请</div>
+            <div v-else class="invite-items">
+              <div v-for="invite in sentInvites" :key="invite.invite_id" class="invite-item">
+                <p>
+                  已邀请 <strong>{{ invite.inviteeName || invite.inviteeStudentId }}</strong>
+                  <span class="invite-status" :class="invite.status">
+                    {{ invite.status === 'pending' ? '待回应' : invite.status === 'accepted' ? '已接受' : '已拒绝' }}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- 单人学生：收到的邀请 -->
+        <template v-else-if="!myTeam">
+          <div class="received-invites">
+            <h4>收到的邀请</h4>
+            <div v-if="receivedInvites.length === 0" class="empty-tip">暂无邀请</div>
+            <div v-else class="invite-items">
+              <div v-for="invite in receivedInvites" :key="invite.invite_id" class="invite-item">
+                <div class="invite-info">
+                  <p>{{ formatInviteContent(invite) }}</p>
+                </div>
+                <div class="invite-actions">
+                  <button @click="handleInvite(invite, 'accept')" class="btn-accept">接受</button>
+                  <button @click="handleInvite(invite, 'reject')" class="btn-reject">拒绝</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- 队员：不可被邀请 -->
+        <template v-else>
+          <div class="empty-tip">暂无消息</div>
+        </template>
       </div>
       
-      <!-- 空状态提示 -->
-      <div v-if="(!isCaptain || joinRequests.length === 0) && receivedInvites.length === 0" class="empty-tip">
-        暂无消息
+      <!-- ====== 申请 Tab ====== -->
+      <div v-if="activeTab === 'apply'" class="tab-content">
+        <!-- 队长：收到的加入申请 -->
+        <template v-if="isCaptain">
+          <div class="request-list">
+            <h4>加入申请</h4>
+            <div v-if="joinRequests.length === 0" class="empty-tip">暂无申请</div>
+            <div v-else class="request-items">
+              <div v-for="req in joinRequests" :key="req.id" class="request-item">
+                <div class="request-info">
+                  <p><strong>申请人：</strong>{{ req.studentName }}</p>
+                  <p><strong>学号：</strong>{{ req.student_id }}</p>
+                  <p v-if="req.reason"><strong>申请理由：</strong>{{ req.reason }}</p>
+                  <p v-else><em>无申请理由</em></p>
+                </div>
+                <div class="request-actions">
+                  <button @click="handleJoinRequest(req, 'accept')" class="btn-accept">同意</button>
+                  <button @click="handleJoinRequest(req, 'reject')" class="btn-reject">拒绝</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- 单人学生：自己提交的申请 -->
+        <template v-else-if="!myTeam">
+          <div class="my-join-requests">
+            <h4>我的申请</h4>
+            <div v-if="myJoinRequests.length === 0" class="empty-tip">暂无申请</div>
+            <div v-else class="request-items">
+              <div v-for="req in myJoinRequests" :key="req.id" class="request-item my-request">
+                <div class="request-info">
+                  <p><strong>队伍：</strong>{{ req.teamName || req.team_id }}</p>
+                  <p v-if="req.teamTopic"><strong>选题：</strong>{{ req.teamTopic }}</p>
+                  <p><strong>队长：</strong>{{ req.captainName }}</p>
+                  <p><strong>状态：</strong>
+                    <span :class="'status-' + (req.status || 'pending')">
+                      {{ req.status === 'accepted' ? '已同意' : req.status === 'rejected' ? '已拒绝' : '等待审核' }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- 队员 -->
+        <template v-else>
+          <div class="empty-tip">暂无消息</div>
+        </template>
+      </div>
+      
+      <!-- ====== 其他 Tab ====== -->
+      <div v-if="activeTab === 'other'" class="tab-content">
+        <div class="empty-tip">暂无系统通知</div>
       </div>
     </div>
 
@@ -278,6 +353,9 @@ const showJoinForm = ref(false)
 const showTeamDetail = ref(false)
 const joinRequests = ref([])
 const receivedInvites = ref([])
+const sentInvites = ref([])
+const myJoinRequests = ref([])
+const activeTab = ref('invite')
 const reserveCountdownTime = ref(0)
 const reserveTimer = ref(null)
 
@@ -325,6 +403,24 @@ const canCreateTeam = computed(() => {
   return createForm.value.topicId && isValidMemberCount.value
 })
 
+const inviteCount = computed(() => {
+  if (isCaptain.value) {
+    return sentInvites.value.filter(i => i.status === 'pending').length
+  } else if (!myTeam.value) {
+    return receivedInvites.value.length
+  }
+  return 0
+})
+
+const applyCount = computed(() => {
+  if (isCaptain.value) {
+    return joinRequests.value.length
+  } else if (!myTeam.value) {
+    return myJoinRequests.value.length
+  }
+  return 0
+})
+
 const showReserveCountdown = computed(() => {
   return myTeam.value && reserveCountdownTime.value > 0
 })
@@ -355,6 +451,7 @@ const loadMyTeam = async () => {
 
       if (isCaptain.value) {
         loadJoinRequests()
+        loadSentInvites()
       }
     }
   } catch (error) {
@@ -376,6 +473,39 @@ const loadReceivedInvites = async () => {
     }
   } catch (error) {
     console.error('加载邀请消息失败:', error)
+  }
+}
+
+const loadSentInvites = async () => {
+  if (!myTeam.value) return
+  
+  try {
+    const res = await request.get('/student/team/sent-invites', {
+      params: { teamId: myTeam.value.teamId }
+    })
+
+    if (res.data.code === 200) {
+      sentInvites.value = res.data.data || []
+    }
+  } catch (error) {
+    console.error('加载已发邀请失败:', error)
+  }
+}
+
+const loadMyJoinRequests = async () => {
+  const studentId = localStorage.getItem('studentId')
+  if (!studentId) return
+  
+  try {
+    const res = await request.get('/student/team/my-join-requests', {
+      params: { studentId: parseInt(studentId) }
+    })
+
+    if (res.data.code === 200) {
+      myJoinRequests.value = res.data.data || []
+    }
+  } catch (error) {
+    console.error('加载我的加入申请失败:', error)
   }
 }
 
@@ -580,9 +710,25 @@ const inviteStudent = async (student) => {
 }
 
 const handleInvite = async (invite, action) => {
+  if (action === 'accept') {
+    // 检查是否有单人预占记录（如果有，提示将清除）
+    try {
+      const checkRes = await request.get('/student/application/check-reservation', {
+        params: { studentId: currentStudentId.value }
+      })
+      if (checkRes.data.data && checkRes.data.data.hasReservation) {
+        if (!confirm('您当前有单人选题预占记录，接受邀请后将清除该预占。是否继续？')) {
+          return
+        }
+      }
+    } catch (e) {
+      // 接口不存在则忽略
+    }
+  }
+  
   try {
     const res = await request.put('/student/team/invite/handle', null, {
-      params: { inviteId: invite.inviteId, action }
+      params: { inviteId: (invite.invite_id || invite.inviteId), action }
     })
 
     if (res.data.code === 200) {
@@ -592,7 +738,7 @@ const handleInvite = async (invite, action) => {
       } else {
         alert('已拒绝')
       }
-      receivedInvites.value = receivedInvites.value.filter(i => i.inviteId !== invite.inviteId)
+      receivedInvites.value = receivedInvites.value.filter(i => (i.invite_id || i.inviteId) !== (invite.invite_id || invite.inviteId))
     } else {
       alert(res.data.message || '操作失败')
     }
@@ -602,9 +748,10 @@ const handleInvite = async (invite, action) => {
 }
 
 const formatInviteContent = (invite) => {
-  // 根据邀请信息格式化显示内容
-  // 可以显示为：队长XXX邀请您加入队伍（选题：XXX）
-  return `学生 ${invite.inviterId} 邀请您加入队伍（队伍ID: ${invite.teamId}）`
+  // 增强显示：队长名 + 选题名
+  const inviterName = invite.inviterName || `学生 ${invite.inviter_id || invite.inviterId}`
+  const topicText = invite.teamTopic ? `（选题：${invite.teamTopic}）` : ''
+  return `${inviterName} 邀请您加入队伍 ${topicText}`
 }
 
 const updateMemberTask = async (member) => {
@@ -766,7 +913,8 @@ const closeTeamDetail = () => {
 onMounted(() => {
   loadMyTeam()
   loadAvailableTopics()
-  loadReceivedInvites() // 加载邀请消息，所有学生都能看到
+  loadReceivedInvites() // 单人学生：加载收到的邀请
+  loadMyJoinRequests() // 单人学生：加载自己提交的加入申请
 })
 
 onUnmounted(() => {
@@ -1363,5 +1511,152 @@ h4 {
 
 .btn-cancel:hover {
   background: #a6a9ad;
+}
+
+/* 标签样式 */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  color: #409eff;
+}
+
+.tab-btn.active {
+  color: #409eff;
+  border-bottom-color: #409eff;
+  font-weight: 500;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #f56c6c;
+  color: white;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  margin-left: 5px;
+}
+
+.tab-content {
+  min-height: 100px;
+}
+
+/* 已发邀请 */
+.sent-invites {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.invite-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.invite-status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.invite-status.accepted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.invite-status.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* 我的申请 */
+.my-join-requests {
+  margin-top: 10px;
+}
+
+.my-request {
+  background: #f8f9fa;
+}
+
+.status-pending {
+  color: #e6a23c;
+  font-weight: 500;
+}
+
+.status-accepted {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.status-rejected {
+  color: #f56c6c;
+  font-weight: 500;
+}
+
+.received-invites .invite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.invite-info {
+  flex: 1;
+}
+
+.invite-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.sent-invites .invite-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sent-invites .invite-item:last-child {
+  border-bottom: none;
+}
+
+.sent-invites .invite-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tab-btn {
+    color: #c0c4cc;
+  }
+  .tab-btn:hover,
+  .tab-btn.active {
+    color: #409eff;
+  }
 }
 </style>

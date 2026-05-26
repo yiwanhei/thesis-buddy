@@ -2,6 +2,7 @@ package org.example.thesisbuddy.controller.student;
 
 import org.example.thesisbuddy.common.Result;
 import org.example.thesisbuddy.dto.student.TeamCreateDTO;
+import org.example.thesisbuddy.dto.student.TeamInviteDTO;
 import org.example.thesisbuddy.service.student.StudentTeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +40,8 @@ public class StudentTeamController {
 
     // 发送组队邀请
     @PostMapping("/invite")
-    public Result sendInvite(@RequestBody Object inviteDTO) {
-        // TODO: 实现邀请逻辑
-        return Result.success();
+    public Result sendInvite(@RequestBody TeamInviteDTO inviteDTO) {
+        return studentTeamService.sendInvite(inviteDTO);
     }
 
     // 接受/拒绝邀请
@@ -52,10 +52,16 @@ public class StudentTeamController {
         return studentTeamService.handleInvite(inviteId, action);
     }
 
-    // 查看我的邀请列表
+    // 查看我的邀请列表（被邀请）
     @GetMapping("/invites")
     public Result getMyInvites(@RequestParam int studentId) {
         return studentTeamService.getMyInvites(studentId);
+    }
+    
+    // 查看队长发出的邀请列表
+    @GetMapping("/sent-invites")
+    public Result getSentInvites(@RequestParam int teamId) {
+        return studentTeamService.getSentInvites(teamId);
     }
 
     // 退出组队
@@ -74,15 +80,6 @@ public class StudentTeamController {
     @PutMapping("/update-status")
     public Result updateTeamStatus(@RequestParam int teamId, @RequestParam String status) {
         return studentTeamService.updateTeamStatus(teamId, status);
-    }
-    
-    // 加入队伍
-    @PostMapping("/join")
-    public Result joinTeam(@RequestBody java.util.Map<String, Object> params) {
-        int studentId = (int) params.get("studentId");
-        int teamId = (int) params.get("teamId");
-        String reason = (String) params.getOrDefault("reason", "");
-        return studentTeamService.joinTeam(studentId, teamId, reason);
     }
     
     // 解散队伍
@@ -115,10 +112,16 @@ public class StudentTeamController {
         return studentTeamService.submitJoinRequest(studentId, teamId, reason);
     }
     
-    // 获取队伍的加入请求列表
+    // 获取队伍的加入请求列表（队长查看收到的申请）
     @GetMapping("/join-requests")
     public Result getJoinRequests(@RequestParam int teamId) {
         return studentTeamService.getJoinRequests(teamId);
+    }
+    
+    // 获取自己提交的加入申请列表（单人学生查看自己的申请）
+    @GetMapping("/my-join-requests")
+    public Result getMyJoinRequests(@RequestParam int studentId) {
+        return studentTeamService.getMyJoinRequests(studentId);
     }
     
     // 处理加入请求

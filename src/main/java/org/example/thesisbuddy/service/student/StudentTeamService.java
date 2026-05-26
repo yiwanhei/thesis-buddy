@@ -25,6 +25,9 @@ public interface StudentTeamService {
 
     // 查看我的邀请列表
     Result getMyInvites(int studentId);
+    
+    // 查看队长发送的邀请列表
+    Result getSentInvites(int teamId);
 
     // 退出组队
     Result quitTeam(int teamId, int studentId);
@@ -34,9 +37,6 @@ public interface StudentTeamService {
     
     // 更新队伍状态
     Result updateTeamStatus(int teamId, String status);
-    
-    // 加入队伍申请
-    Result joinTeam(int studentId, int teamId, String reason);
     
     // 解散队伍
     Result dissolveTeam(int teamId, int captainId);
@@ -61,4 +61,7 @@ public interface StudentTeamService {
     
     // 更新成员职责
     Result updateMemberTask(int teamId, int studentId, String task);
+    
+    // 查询学生自己提交的加入申请记录
+    Result getMyJoinRequests(int studentId);
 }

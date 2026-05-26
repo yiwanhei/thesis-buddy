@@ -35,8 +35,8 @@ public interface TeamDao {
     // 更新邀请状态
     int updateInviteStatus(@Param("inviteId") int inviteId, @Param("action") String action);
     
-    // 查询学生收到的邀请
-    List<TeamInviteDTO> selectInvitesByStudent(int studentId);
+    // 查询学生收到的邀请（增强版：包含队长姓名、选题名称等）
+    List<Map<String, Object>> selectInvitesByStudent(int studentId);
     
     // 根据邀请ID查询邀请信息
     TeamInviteDTO selectInviteById(int inviteId);
@@ -91,4 +91,9 @@ public interface TeamDao {
     
     // 查询学生的班级ID
     Integer selectStudentClassId(@Param("studentId") int studentId);
+    // 查询学生自己的加入申请记录
+    List<Map<String, Object>> selectMyJoinRequests(@Param("studentId") int studentId);
+    
+    // 查询队长发送的邀请（含队伍信息）
+    List<Map<String, Object>> selectSentInvitesByCaptain(@Param("teamId") int teamId);
 }

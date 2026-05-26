@@ -210,4 +210,11 @@
         WHERE team_id = #{teamId} AND student_id = -1 AND application_status = 1
         LIMIT 1
     </update>
+    
+    <!-- 将真实学生的预占记录转为占位记录（student_id=-1），保留时间和队伍名额不受影响 -->
+    <update id="convertToPlaceholder">
+        UPDATE thesis_application
+        SET student_id = -1, remark = #{remark}
+        WHERE team_id = #{teamId} AND student_id = #{studentId} AND application_status = 1
+    </update>
 </mapper>

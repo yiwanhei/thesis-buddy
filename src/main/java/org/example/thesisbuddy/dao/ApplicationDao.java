@@ -87,4 +87,9 @@ public interface ApplicationDao {
     int assignPlaceholder(@Param("teamId") Integer teamId,
                           @Param("newStudentId") Integer newStudentId,
                           @Param("reserveUntil") LocalDateTime reserveUntil);
+
+    // 将真实学生的预占记录转为占位记录（student_id=-1），保留时间和队伍名额不受影响
+    int convertToPlaceholder(@Param("teamId") Integer teamId,
+                             @Param("studentId") Integer studentId,
+                             @Param("remark") String remark);
 }

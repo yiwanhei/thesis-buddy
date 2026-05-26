@@ -18,6 +18,12 @@
       <router-link to="/team" class="nav-btn" active-class="active">
         队伍
       </router-link>
+      <router-link to="/application" class="nav-btn" active-class="active">
+        申请
+      </router-link>
+      <router-link to="/profile" class="nav-btn" active-class="active">
+        个人
+      </router-link>
     </nav>
   </div>
 </template>
@@ -30,7 +36,7 @@ const router = useRouter()
 const route = useRoute()
 
 // 一级页面（顶层页面）列表
-const topLevelPages = ['/topics', '/team']
+const topLevelPages = ['/topics', '/team', '/application', '/profile']
 
 // 判断是否显示返回按钮
 const showBackButton = computed(() => {

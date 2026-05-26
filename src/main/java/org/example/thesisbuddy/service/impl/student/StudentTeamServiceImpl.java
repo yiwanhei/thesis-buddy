@@ -287,10 +287,11 @@ public class StudentTeamServiceImpl implements StudentTeamService {
                 return Result.error("队伍人数已满");
             }
             
-            // 检查该学生是否已有预占记录（不能重复占位）
+            // 检查该学生是否已有预占记录（如果有，先清除单人选题记录）
             ThesisApplication existingReservation = applicationDao.selectByStudentIdAndStatus(targetInvite.getInviteeId(), 1);
             if (existingReservation != null) {
-                return Result.error("你已在其他选题预占名额，无法加入");
+                // 如果有单人预占记录，释放原来的记录再接受邀请
+                applicationDao.releaseStudentReservation(targetInvite.getInviteeId(), "接受邀请，清除原单人选题预占");
             }
             
             // 添加为队员
@@ -330,6 +331,11 @@ public class StudentTeamServiceImpl implements StudentTeamService {
     public Result getMyInvites(int studentId) {
         return Result.success(teamDao.selectInvitesByStudent(studentId));
     }
+    
+    @Override
+    public Result getSentInvites(int teamId) {
+        return Result.success(teamDao.selectSentInvitesByCaptain(teamId));
+    }
 
     @Override
     public Result quitTeam(int teamId, int studentId) {
@@ -350,8 +356,8 @@ public class StudentTeamServiceImpl implements StudentTeamService {
         int rows = teamDao.deleteMember(teamId, studentId);
         if (rows <= 0) return Result.error("退出失败");
         
-        // 释放该学生的预占记录（每名学生退出时释放占用的名额）
-        applicationDao.releaseStudentReservation(studentId, "成员退出队伍，释放名额");
+        // 退出/踢出时：将预占记录转为占位（student_id=-1），保留名额和时间不受影响
+        applicationDao.convertToPlaceholder(teamId, studentId, "成员退出队伍，名额转为占位");
         
         return Result.success("已退出队伍");
     }
@@ -381,8 +387,8 @@ public class StudentTeamServiceImpl implements StudentTeamService {
         int rows = teamDao.deleteMember(teamId, studentId);
         if (rows <= 0) return Result.error("踢出失败");
         
-        // 释放该学生的预占记录（每名学生被踢出时释放占用的名额）
-        applicationDao.releaseStudentReservation(studentId, "成员被踢出队伍，释放名额");
+        // 踢出时：将预占记录转为占位（student_id=-1），保留名额和时间不受影响
+        applicationDao.convertToPlaceholder(teamId, studentId, "成员被踢出队伍，名额转为占位");
         
         return Result.success("已踢出成员");
     }
@@ -419,72 +425,6 @@ public class StudentTeamServiceImpl implements StudentTeamService {
             logger.error("更新队伍状态异常: teamId={}, status={}, error={}", teamId, status, e.getMessage(), e);
             return Result.error("状态更新失败：" + e.getMessage());
         }
-    }
-
-    @Override
-    public Result joinTeam(int studentId, int teamId, String reason) {
-        // 检查队伍是否存在
-        TeamInfo team = teamDao.selectById(teamId);
-        if (team == null) {
-            return Result.error("队伍不存在");
-        }
-        
-        // 检查队伍状态
-        if (!"forming".equals(team.getStatus())) {
-            return Result.error("队伍已确认选题，无法加入");
-        }
-        
-        // 检查是否已是队员
-        if (teamDao.isMember(teamId, studentId)) {
-            return Result.error("您已是该队伍成员");
-        }
-        
-        // 检查队伍人数是否已满
-        int memberCount = teamDao.countMembersByTeamId(teamId);
-        if (memberCount >= team.getMaxMembers()) {
-            return Result.error("队伍人数已满");
-        }
-        
-        // 检查该选题是否有足够名额
-        if (team.getTopicId() != null) {
-            int remaining = topicDao.selectRemainingCount(team.getTopicId());
-            if (remaining <= 0) {
-                return Result.error("该选题已无名额");
-            }
-        }
-        
-        // 检查该学生是否已有预占记录（不能重复占位）
-        ThesisApplication existingReservation = applicationDao.selectByStudentIdAndStatus(studentId, 1);
-        if (existingReservation != null) {
-            return Result.error("你已在其他选题预占名额，无法加入");
-        }
-        
-        // 直接加入队伍
-        TeamMember member = new TeamMember();
-        member.setTeamId(teamId);
-        member.setStudentId(studentId);
-        member.setRoleInTeam("组员");
-        int rows = teamDao.insertMember(member);
-        if (rows <= 0) return Result.error("加入失败");
-        
-        // 队伍有选题时，分配占位记录或新建预占
-        if (team.getTopicId() != null) {
-            int assigned = applicationDao.assignPlaceholder(teamId, studentId, calcReserveUntil());
-            if (assigned <= 0) {
-                ThesisApplication newApp = new ThesisApplication();
-                newApp.setStudentId(studentId);
-                newApp.setTopicId(team.getTopicId());
-                newApp.setTeamId(teamId);
-                newApp.setApplyType("team");
-                newApp.setApplicationStatus(1);
-                newApp.setIsLocked(0);
-                newApp.setApplyTime(LocalDateTime.now());
-                newApp.setReserveUntil(calcReserveUntil());
-                applicationDao.insert(newApp);
-            }
-        }
-        
-        return Result.success("已成功加入队伍");
     }
 
     @Override
@@ -561,16 +501,11 @@ public class StudentTeamServiceImpl implements StudentTeamService {
                     continue;
                 }
                 
-                // 检查队伍人数是否已满
-                int memberCount = teamDao.countMembersByTeamId(team.getTeamId());
-                if (memberCount >= team.getMaxMembers()) {
-                    continue;
-                }
-                
                 Map<String, Object> teamInfo = new HashMap<>();
                 teamInfo.put("teamId", team.getTeamId());
                 teamInfo.put("applyTopic", team.getApplyTopic());
                 teamInfo.put("maxMembers", team.getMaxMembers());
+                int memberCount = teamDao.countMembersByTeamId(team.getTeamId());
                 teamInfo.put("memberCount", memberCount);
                 
                 // 获取队长姓名
@@ -628,6 +563,17 @@ public class StudentTeamServiceImpl implements StudentTeamService {
     }
 
     @Override
+    public Result getMyJoinRequests(int studentId) {
+        try {
+            List<Map<String, Object>> requests = teamDao.selectMyJoinRequests(studentId);
+            return Result.success(requests);
+        } catch (Exception e) {
+            logger.error("获取我的加入申请记录失败", e);
+            return Result.error("获取失败");
+        }
+    }
+
+    @Override
     public Result handleJoinRequest(int requestId, String action, int teamId, int captainId) {
         try {
             // 验证是否为队长
@@ -662,21 +608,21 @@ public class StudentTeamServiceImpl implements StudentTeamService {
             
             // 如果同意，将学生添加到队伍
             if ("accepted".equals(action)) {
+                // 检查该生是否已是队员
+                if (teamDao.isMember(teamId, studentId)) {
+                    return Result.error("该生已是队员");
+                }
+                
+                // 检查该生是否有其他预占
+                ThesisApplication existingReservation = applicationDao.selectByStudentIdAndStatus(studentId, 1);
+                if (existingReservation != null) {
+                    return Result.error("该生已有其他选题预占，无法加入");
+                }
+                
                 // 检查队伍人数是否已满
                 int memberCount = teamDao.countMembersByTeamId(teamId);
                 if (memberCount >= team.getMaxMembers()) {
                     return Result.error("队伍人数已满");
-                }
-                
-                // 检查是否已是队员
-                if (teamDao.isMember(teamId, studentId)) {
-                    return Result.error("该学生已是队员");
-                }
-                
-                // 检查该学生是否已有预占记录
-                ThesisApplication existingReservation = applicationDao.selectByStudentIdAndStatus(studentId, 1);
-                if (existingReservation != null) {
-                    return Result.error("该学生已在其他选题预占名额");
                 }
                 
                 // 添加为队员

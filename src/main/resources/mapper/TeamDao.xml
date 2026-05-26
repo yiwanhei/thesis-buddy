@@ -29,7 +29,7 @@
     
     <!-- 结果映射 - TeamInviteDTO -->
     <resultMap id="TeamInviteDTOResultMap" type="org.example.thesisbuddy.dto.student.TeamInviteDTO">
-        <id property="id" column="invite_id"/>
+        <id property="inviteId" column="invite_id"/>
         <result property="inviterId" column="inviter_id"/>
         <result property="inviteeId" column="invitee_id"/>
         <result property="teamId" column="team_id"/>
@@ -90,12 +90,24 @@
         WHERE invite_id = #{inviteId}
     </update>
     
-    <!-- 查询学生收到的邀请 -->
-    <select id="selectInvitesByStudent" resultMap="TeamInviteDTOResultMap">
-        SELECT invite_id, inviter_id, invitee_id, team_id, status
-        FROM team_invite
-        WHERE invitee_id = #{studentId}
-        AND status = 'pending'
+    <!-- 查询学生收到的邀请（增强版：包含队长姓名、选题名称） -->
+    <select id="selectInvitesByStudent" resultType="java.util.HashMap">
+        SELECT 
+            ti.invite_id,
+            ti.inviter_id,
+            ti.invitee_id,
+            ti.team_id,
+            ti.status,
+            ti.create_time,
+            s.real_name AS inviterName,
+            t.apply_topic AS teamTopic,
+            t.team_name
+        FROM team_invite ti
+        LEFT JOIN student_account s ON ti.inviter_id = s.student_id
+        LEFT JOIN team_info t ON ti.team_id = t.team_id
+        WHERE ti.invitee_id = #{studentId}
+        AND ti.status = 'pending'
+        ORDER BY ti.create_time DESC
     </select>
     
     <!-- 根据邀请ID查询邀请信息 -->
@@ -212,11 +224,12 @@
     <select id="searchStudents" resultType="java.util.HashMap">
         SELECT 
             student_id,
+            account,
             real_name,
             class_id
         FROM student_account
         WHERE class_id = #{classId}
-        AND (student_id LIKE CONCAT('%', #{keyword}, '%')
+        AND (account LIKE CONCAT('%', #{keyword}, '%')
              OR real_name LIKE CONCAT('%', #{keyword}, '%'))
         LIMIT 20
     </select>
@@ -238,5 +251,40 @@
     <select id="selectStudentClassId" resultType="integer">
         SELECT class_id FROM student_account
         WHERE student_id = #{studentId}
+    </select>
+    
+    <!-- 查询学生自己的加入申请记录 -->
+    <select id="selectMyJoinRequests" resultType="java.util.HashMap">
+        SELECT 
+            jr.id,
+            jr.team_id,
+            jr.reason,
+            jr.status,
+            jr.create_time,
+            t.apply_topic AS teamTopic,
+            t.team_name,
+            s.real_name AS captainName
+        FROM team_join_request jr
+        JOIN team_info t ON jr.team_id = t.team_id
+        JOIN student_account s ON t.captain_id = s.student_id
+        WHERE jr.student_id = #{studentId}
+        ORDER BY jr.create_time DESC
+    </select>
+    
+    <!-- 查询队长发送的邀请（含队伍信息） -->
+    <select id="selectSentInvitesByCaptain" resultType="java.util.HashMap">
+        SELECT 
+            ti.invite_id,
+            ti.inviter_id,
+            ti.invitee_id,
+            ti.team_id,
+            ti.status,
+            ti.create_time,
+            s.real_name AS inviteeName,
+            s.student_id AS inviteeStudentId
+        FROM team_invite ti
+        LEFT JOIN student_account s ON ti.invitee_id = s.student_id
+        WHERE ti.team_id = #{teamId}
+        ORDER BY ti.create_time DESC
     </select>
 </mapper>
