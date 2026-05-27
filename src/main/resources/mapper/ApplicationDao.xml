@@ -31,14 +31,9 @@
     </select>
     
     <insert id="insert">
-        INSERT INTO thesis_application(student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, reserve_until)
-        VALUES(#{studentId}, #{topicId}, #{teamId}, #{applyType}, #{applicationStatus}, #{isLocked}, #{applyTime}, #{reserveUntil})
+        INSERT INTO thesis_application(student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, reserve_until, remark)
+        VALUES(#{studentId}, #{topicId}, #{teamId}, #{applyType}, #{applicationStatus}, #{isLocked}, #{applyTime}, #{reserveUntil}, #{remark})
     </insert>
-    
-    <delete id="deleteById">
-        DELETE FROM thesis_application
-        WHERE application_id = #{applicationId}
-    </delete>
     
     <select id="selectPendingByTeacher" resultMap="ThesisApplicationResultMap">
         SELECT ta.application_id, ta.student_id, ta.topic_id, ta.team_id, ta.apply_type, ta.application_status, ta.is_locked, ta.apply_time, ta.review_time, ta.reviewer_id, ta.remark
@@ -63,27 +58,6 @@
         WHERE tl.teacher_id = #{teacherId} AND ta.application_status != 1
     </select>
 
-    <select id="countApprovedByTopic" resultType="int">
-        SELECT COUNT(*) FROM thesis_application
-        WHERE topic_id = #{topicId} AND application_status = 2
-    </select>
-
-    <select id="countReservedByTopic" resultType="int">
-        SELECT COUNT(*) FROM thesis_application
-        WHERE topic_id = #{topicId} AND application_status = 1
-    </select>
-
-    <select id="selectReservedByTopic" resultMap="ThesisApplicationResultMap">
-        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark
-        FROM thesis_application
-        WHERE topic_id = #{topicId} AND application_status = 1
-    </select>
-
-    <update id="batchResetReserved">
-        UPDATE thesis_application
-        SET application_status = 0, remark = '每日00:00自动重置'
-        WHERE application_status = 1 AND DATE(apply_time) &lt; CURDATE()
-    </update>
 
     <update id="releaseReservedSlots">
         UPDATE thesis_application
@@ -91,25 +65,7 @@
         WHERE topic_id = #{topicId} AND application_status = 1
     </update>
     
-    <!-- 释放指定队伍的预占名额：保留第一个预占记录，释放其余的 -->
-    <update id="releaseTeamReservedSlots">
-        UPDATE thesis_application
-        SET application_status = 0, remark = #{remark}
-        WHERE team_id = #{teamId} 
-        AND topic_id = #{topicId} 
-        AND application_status = 1
-        AND application_id NOT IN (
-            SELECT application_id FROM (
-                SELECT application_id 
-                FROM thesis_application 
-                WHERE team_id = #{teamId} 
-                AND topic_id = #{topicId} 
-                AND application_status = 1
-                ORDER BY application_id ASC
-                LIMIT 1
-            ) AS temp
-        )
-    </update>
+
     
     <!-- 释放指定学生的预占记录 -->
     <update id="releaseStudentReservation">
@@ -142,28 +98,14 @@
         WHERE topic_id = #{topicId} AND application_status IN (1, 2, 3)
     </select>
     
-    <!-- 查询所有超时的预占记录 -->
-    <select id="selectExpiredReservations" resultMap="ThesisApplicationResultMap">
-        SELECT application_id, student_id, topic_id, team_id, apply_type, application_status, is_locked, apply_time, review_time, reviewer_id, remark, reserve_until
-        FROM thesis_application
-        WHERE application_status = 1 AND reserve_until IS NOT NULL AND reserve_until &lt; NOW()
-    </select>
-    
-    <!-- 批量释放所有超时预占 -->
+
     <update id="batchReleaseExpiredReservations">
         UPDATE thesis_application
         SET application_status = 0, remark = '预占30分钟超时自动释放'
         WHERE application_status = 1 AND reserve_until IS NOT NULL AND reserve_until &lt; NOW()
     </update>
     
-    <!-- 批量更新队伍下所有预占记录的reserve_until -->
-    <update id="updateReserveUntilByTeam">
-        UPDATE thesis_application
-        SET reserve_until = #{reserveUntil}
-        WHERE team_id = #{teamId} AND application_status = 1
-    </update>
-    
-    <!-- 批量更新队伍下指定学生的reserve_until -->
+
     <update id="updateReserveUntilByTeamAndStudents">
         UPDATE thesis_application
         SET reserve_until = #{reserveUntil}

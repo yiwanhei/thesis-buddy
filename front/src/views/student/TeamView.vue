@@ -1339,14 +1339,6 @@ h4 {
   background: #a6a9ad;
 }
 
-.locked-hint {
-  color: #909399;
-  font-size: 12px;
-  padding: 4px 8px;
-  background: #f5f5f5;
-  border-radius: 4px;
-}
-
 .lock-notice {
   margin-top: 15px;
   padding: 12px;
@@ -1451,18 +1443,6 @@ h4 {
 
 .member-box.selected {
   border-color: #409eff;
-}
-
-.member-box.valid {
-  background: #67c23a;
-  color: white;
-  border-color: #67c23a;
-}
-
-.member-box.invalid {
-  background: #f56c6c;
-  color: white;
-  border-color: #f56c6c;
 }
 
 .member-hint,

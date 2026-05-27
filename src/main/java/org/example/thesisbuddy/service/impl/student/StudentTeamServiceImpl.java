@@ -3,7 +3,6 @@ package org.example.thesisbuddy.service.impl.student;
 import org.example.thesisbuddy.dao.*;
 import org.example.thesisbuddy.dto.student.TeamCreateDTO;
 import org.example.thesisbuddy.dto.student.TeamInviteDTO;
-import org.example.thesisbuddy.dto.teacher.AuditDTO;
 import org.example.thesisbuddy.entity.*;
 import org.example.thesisbuddy.service.student.StudentTeamService;
 import org.example.thesisbuddy.common.Result;
