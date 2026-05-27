@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // ========== 学生端 ==========
     {
       path: '/login',
       name: 'Login',
@@ -13,7 +14,7 @@ const router = createRouter({
       path: '/',
       name: 'StudentLayout',
       component: () => import('../views/student/StudentLayout.vue'),
-      redirect: '/topics', // 修改：默认跳转到论文选题页面
+      redirect: '/topics',
       children: [
         {
           path: 'topics',
@@ -32,36 +33,95 @@ const router = createRouter({
         },
       ],
     },
+
+    // ========== 管理员端 ==========
+    {
+      path: '/admin/login',
+      name: 'AdminLogin',
+      component: () => import('../views/admin/AdminLoginView.vue'),
+    },
+    {
+      path: '/admin',
+      name: 'AdminLayout',
+      component: () => import('../views/admin/AdminLayout.vue'),
+      redirect: '/admin/dashboard',
+      children: [
+        {
+          path: 'dashboard',
+          name: 'AdminDashboard',
+          component: () => import('../views/admin/DashboardView.vue'),
+        },
+        {
+          path: 'statistics',
+          name: 'AdminStatistics',
+          component: () => import('../views/admin/StatisticsView.vue'),
+        },
+        {
+          path: 'users',
+          name: 'AdminUsers',
+          component: () => import('../views/admin/UserManageView.vue'),
+        },
+        {
+          path: 'topics',
+          name: 'AdminTopics',
+          component: () => import('../views/admin/TopicManageView.vue'),
+        },
+        {
+          path: 'audit',
+          name: 'AdminAudit',
+          component: () => import('../views/admin/AuditManageView.vue'),
+        },
+        {
+          path: 'config',
+          name: 'AdminConfig',
+          component: () => import('../views/admin/ConfigManageView.vue'),
+        },
+        {
+          path: 'teams',
+          name: 'AdminTeams',
+          component: () => import('../views/admin/TeamManageView.vue'),
+        },
+      ],
+    },
   ],
 })
 
-// 路由守卫：检查登录状态和过期时间
+// 路由守卫
 router.beforeEach((to, _from) => {
-  // 如果访问登录页，直接放行
+  // 管理员登录页 - 放行
+  if (to.path === '/admin/login') {
+    return true
+  }
+
+  // 管理员其他页面 - 检查adminToken
+  if (to.path.startsWith('/admin')) {
+    const token = localStorage.getItem('adminToken')
+    if (!token) {
+      return '/admin/login'
+    }
+    return true
+  }
+
+  // 学生登录页 - 放行
   if (to.path === '/login') {
     return true
   }
-  
-  // 检查是否有 studentId 和未过期的登录状态
+
+  // 学生端 - 检查studentId
   const studentId = localStorage.getItem('studentId')
   const expireTime = localStorage.getItem('loginExpireTime')
-  
+
   if (!studentId || !expireTime) {
-    // 没有登录信息，跳转到登录页
     return '/login'
   }
-  
-  // 检查是否过期
-  const now = Date.now()
-  if (now > parseInt(expireTime)) {
-    // 已过期，清除所有登录信息并跳转到登录页
+
+  if (Date.now() > parseInt(expireTime)) {
     localStorage.removeItem('studentId')
     localStorage.removeItem('studentInfo')
     localStorage.removeItem('loginExpireTime')
     return '/login'
   }
-  
-  // 未过期，允许访问
+
   return true
 })
 

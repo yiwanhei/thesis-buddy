@@ -18,10 +18,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 学生端 - 移动端居中 */
+body.student-layout {
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100vh;
   position: relative;
+}
+
+.admin-layout ~ #app body {
+  max-width: none;
+  margin: 0;
 }
 
 #app {

@@ -2,11 +2,13 @@ package org.example.thesisbuddy.service.impl.admin;
 
 import org.example.thesisbuddy.dao.StudentDao;
 import org.example.thesisbuddy.dao.TeacherDao;
+import org.example.thesisbuddy.dao.ClassDao;
 import org.example.thesisbuddy.dto.admin.UserAddDTO;
 import org.example.thesisbuddy.dto.admin.UserStatusDTO;
 import org.example.thesisbuddy.dto.admin.BatchImportDTO;
 import org.example.thesisbuddy.entity.StudentAccount;
 import org.example.thesisbuddy.entity.TeacherAccount;
+import org.example.thesisbuddy.entity.ClassInfo;
 import org.example.thesisbuddy.service.admin.AdminUserManageService;
 import org.example.thesisbuddy.common.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
     
     @Autowired
     private TeacherDao teacherDao;
+    
+    @Autowired
+    private ClassDao classDao;
 
     @Override
     public Result addUser(UserAddDTO userDTO) {
@@ -107,5 +112,40 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
             return Result.success(teacherDao.selectAll());
         }
         return Result.error("类型错误");
+    }
+
+    @Override
+    public Result listUsers(String type, String keyword, int page, int size) {
+        int offset = (page - 1) * size;
+        Map<String, Object> data = new HashMap<>();
+        
+        if ("student".equals(type)) {
+            if (keyword != null && !keyword.isEmpty()) {
+                data.put("list", studentDao.selectByKeyword(keyword, offset, size));
+                data.put("total", studentDao.countByKeyword(keyword));
+            } else {
+                data.put("list", studentDao.selectAllWithPagination(offset, size));
+                data.put("total", studentDao.countAll());
+            }
+        } else if ("teacher".equals(type)) {
+            if (keyword != null && !keyword.isEmpty()) {
+                data.put("list", teacherDao.selectByKeyword(keyword, offset, size));
+                data.put("total", teacherDao.countByKeyword(keyword));
+            } else {
+                data.put("list", teacherDao.selectAllWithPagination(offset, size));
+                data.put("total", teacherDao.countAll());
+            }
+        } else {
+            return Result.error("类型错误");
+        }
+        
+        data.put("page", page);
+        data.put("size", size);
+        return Result.success(data);
+    }
+
+    @Override
+    public Result listClasses() {
+        return Result.success(classDao.selectAll());
     }
 }

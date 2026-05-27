@@ -63,9 +63,32 @@
         FROM student_account
     </select>
     
+    <!-- 查询所有学生（分页） -->
+    <select id="selectAllWithPagination" resultMap="StudentAccountResultMap">
+        SELECT student_id, account, password_hash, real_name, gender, phone, class_id, status, create_time
+        FROM student_account
+        ORDER BY student_id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
     <!-- 统计学生总数 -->
     <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM student_account
+    </select>
+    
+    <!-- 搜索学生 -->
+    <select id="selectByKeyword" resultMap="StudentAccountResultMap">
+        SELECT student_id, account, password_hash, real_name, gender, phone, class_id, status, create_time
+        FROM student_account
+        WHERE CONCAT(account, real_name) LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY student_id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 搜索学生总数 -->
+    <select id="countByKeyword" resultType="int">
+        SELECT COUNT(*) FROM student_account
+        WHERE CONCAT(account, real_name) LIKE CONCAT('%', #{keyword}, '%')
     </select>
 
 </mapper>

@@ -23,7 +23,7 @@
     <select id="selectByCategory" resultMap="TopicLibraryResultMap">
         SELECT topic_id, topic_name, category, result_form, max_capacity, status, create_time
         FROM topic_library
-        WHERE category = #{category}
+        WHERE CONCAT(topic_name, category) LIKE CONCAT('%', #{category}, '%')
         ORDER BY topic_id
         LIMIT #{limit} OFFSET #{offset}
     </select>
@@ -87,5 +87,22 @@
         AND (t.max_capacity - COALESCE(occ.occupied_cnt, 0)) > 0
         ORDER BY t.topic_id
     </select>
+    
+    <!-- 更新选题 -->
+    <update id="update">
+        UPDATE topic_library
+        SET topic_name = #{topicName},
+            category = #{category},
+            result_form = #{resultForm},
+            max_capacity = #{maxCapacity},
+            status = #{status}
+        WHERE topic_id = #{topicId}
+    </update>
+    
+    <!-- 删除选题 -->
+    <delete id="deleteById">
+        DELETE FROM topic_library
+        WHERE topic_id = #{topicId}
+    </delete>
 
 </mapper>

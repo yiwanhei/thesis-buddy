@@ -7,6 +7,7 @@ import org.example.thesisbuddy.entity.ThesisApplication;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ApplicationDao {
@@ -78,4 +79,15 @@ public interface ApplicationDao {
     int convertToPlaceholder(@Param("teamId") Integer teamId,
                              @Param("studentId") Integer studentId,
                              @Param("remark") String remark);
+                             
+    // 查询所有申请记录（管理员用，带分页和状态筛选）
+    List<Map<String, Object>> selectAllApplications(@Param("status") Integer status,
+                                                    @Param("offset") int offset,
+                                                    @Param("limit") int limit);
+    
+    // 查询申请记录总数
+    int countAllApplications(@Param("status") Integer status);
+
+    // 获取仪表盘统计数据
+    Map<String, Object> selectDashboardStats();
 }

@@ -287,4 +287,29 @@
         WHERE ti.team_id = #{teamId}
         ORDER BY ti.create_time DESC
     </select>
+    
+    <!-- 查询所有队伍（管理员用） -->
+    <select id="selectAllTeams" resultType="java.util.HashMap">
+        SELECT 
+            t.team_id,
+            t.team_name,
+            t.captain_id,
+            s.real_name AS captainName,
+            t.apply_topic,
+            t.topic_id,
+            t.max_members,
+            t.expected_members,
+            t.status,
+            t.create_time,
+            (SELECT COUNT(*) FROM team_member WHERE team_id = t.team_id) AS memberCount
+        FROM team_info t
+        LEFT JOIN student_account s ON t.captain_id = s.student_id
+        ORDER BY t.create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 查询所有队伍总数 -->
+    <select id="countAllTeams" resultType="int">
+        SELECT COUNT(*) FROM team_info
+    </select>
 </mapper>
