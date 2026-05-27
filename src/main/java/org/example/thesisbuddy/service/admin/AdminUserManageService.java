@@ -20,4 +20,10 @@ public interface AdminUserManageService {
 
     // 导出用户数据
     Result exportUsers(String type);
+    
+    // 分页查询用户列表
+    Result listUsers(String type, String keyword, int page, int size);
+    
+    // 查询班级列表
+    Result listClasses();
 }

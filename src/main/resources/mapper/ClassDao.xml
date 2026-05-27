@@ -20,5 +20,12 @@
         FROM class_info
         WHERE class_id = #{classId}
     </select>
+    
+    <!-- 查询所有班级 -->
+    <select id="selectAll" resultMap="ClassInfoResultMap">
+        SELECT class_id, class_name, campus_id, major_id, grade_id, class_no, create_time
+        FROM class_info
+        ORDER BY class_id
+    </select>
 
 </mapper>

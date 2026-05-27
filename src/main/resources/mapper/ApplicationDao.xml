@@ -159,4 +159,52 @@
         SET student_id = -1, remark = #{remark}
         WHERE team_id = #{teamId} AND student_id = #{studentId} AND application_status = 1
     </update>
+    
+    <!-- 查询所有申请记录（管理员用） -->
+    <select id="selectAllApplications" resultType="java.util.HashMap">
+        SELECT 
+            ta.application_id,
+            ta.student_id,
+            s.real_name AS studentName,
+            s.account AS studentAccount,
+            ta.topic_id,
+            tl.topic_name,
+            ta.team_id,
+            ta.apply_type,
+            ta.application_status,
+            ta.apply_time,
+            ta.review_time,
+            ta.remark
+        FROM thesis_application ta
+        LEFT JOIN student_account s ON ta.student_id = s.student_id
+        LEFT JOIN topic_library tl ON ta.topic_id = tl.topic_id
+        <where>
+            <if test="status != null">
+                AND ta.application_status = #{status}
+            </if>
+        </where>
+        ORDER BY ta.apply_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 查询申请记录总数 -->
+    <select id="countAllApplications" resultType="int">
+        SELECT COUNT(*) FROM thesis_application
+        <where>
+            <if test="status != null">
+                AND application_status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 获取仪表盘统计数据 -->
+    <select id="selectDashboardStats" resultType="java.util.HashMap">
+        SELECT
+            (SELECT COUNT(*) FROM student_account) AS studentCount,
+            (SELECT COUNT(*) FROM teacher_account) AS teacherCount,
+            (SELECT COUNT(*) FROM topic_library) AS topicCount,
+            (SELECT COUNT(*) FROM team_info) AS teamCount,
+            (SELECT COUNT(*) FROM thesis_application WHERE application_status = 1) AS pendingCount,
+            (SELECT COUNT(*) FROM thesis_application WHERE application_status = 3) AS confirmedCount
+    </select>
 </mapper>

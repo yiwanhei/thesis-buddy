@@ -42,4 +42,10 @@ public interface TopicDao {
     
     // 查询所有有剩余名额的选题（用于创建队伍时选择）
     List<TopicLibrary> selectAvailableTopics();
+    
+    // 更新选题
+    int update(TopicLibrary topic);
+    
+    // 删除选题
+    int deleteById(@Param("topicId") Integer topicId);
 }

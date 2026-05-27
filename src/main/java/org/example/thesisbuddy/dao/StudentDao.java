@@ -32,6 +32,18 @@ public interface StudentDao {
     // 查询所有学生
     List<StudentAccount> selectAll();
     
+    // 查询所有学生（分页）
+    List<StudentAccount> selectAllWithPagination(@Param("offset") int offset,
+                                                  @Param("limit") int limit);
+    
     // 统计学生总数
     int countAll();
+    
+    // 搜索学生（按学号/姓名）
+    List<StudentAccount> selectByKeyword(@Param("keyword") String keyword,
+                                          @Param("offset") int offset,
+                                          @Param("limit") int limit);
+    
+    // 搜索学生总数
+    int countByKeyword(@Param("keyword") String keyword);
 }

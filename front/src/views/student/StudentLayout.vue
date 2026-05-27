@@ -15,11 +15,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
+
+onMounted(() => document.body.classList.add('student-layout'))
+onUnmounted(() => document.body.classList.remove('student-layout'))
 
 const topLevelPages = ['/topics', '/team', '/application']
 

@@ -96,4 +96,11 @@ public interface TeamDao {
     
     // 查询队长发送的邀请（含队伍信息）
     List<Map<String, Object>> selectSentInvitesByCaptain(@Param("teamId") int teamId);
+    
+    // 查询所有队伍（管理员用，带分页）
+    List<Map<String, Object>> selectAllTeams(@Param("offset") int offset,
+                                              @Param("limit") int limit);
+    
+    // 查询所有队伍总数
+    int countAllTeams();
 }

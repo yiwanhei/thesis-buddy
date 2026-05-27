@@ -24,6 +24,18 @@ public interface TeacherDao {
     // 查询所有教师
     List<TeacherAccount> selectAll();
     
+    // 查询所有教师（分页）
+    List<TeacherAccount> selectAllWithPagination(@Param("offset") int offset,
+                                                  @Param("limit") int limit);
+    
     // 统计教师总数
     int countAll();
+    
+    // 搜索教师（按工号/姓名）
+    List<TeacherAccount> selectByKeyword(@Param("keyword") String keyword,
+                                          @Param("offset") int offset,
+                                          @Param("limit") int limit);
+    
+    // 搜索教师总数
+    int countByKeyword(@Param("keyword") String keyword);
 }

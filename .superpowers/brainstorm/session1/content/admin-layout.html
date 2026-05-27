@@ -1,0 +1,84 @@
+<h2>管理员端 - 整体布局方案</h2>
+<p class="subtitle">左侧导航 + 右侧内容区，电脑端桌面布局</p>
+
+<div class="section">
+  <h3>导航栏（6个模块）</h3>
+  <div class="mock-nav" style="display:flex;flex-direction:column;gap:8px;max-width:200px;background:#1a1a2e;padding:16px;border-radius:8px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;">
+      <span style="background:#e94560;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#fff;font-size:14px;">📊 仪表盘 & 统计</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;background:#16213e;">
+      <span style="background:#0f3460;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#aaa;font-size:14px;">👥 用户管理</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;">
+      <span style="background:#0f3460;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#aaa;font-size:14px;">📋 选题管理</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;">
+      <span style="background:#0f3460;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#aaa;font-size:14px;">✅ 审核管理</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;">
+      <span style="background:#0f3460;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#aaa;font-size:14px;">⚙️ 系统配置</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;">
+      <span style="background:#0f3460;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>
+      <span style="color:#aaa;font-size:14px;">🚩 队伍管理</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>各模块内容概要</h3>
+  <div class="options" data-multiselect>
+    <div class="option" data-choice="dashboard" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>📊 仪表盘 & 统计</h3>
+        <p>核心指标卡片（总师生/选题/队伍/申请数）+ 统计图表（选题分布、申请趋势、学院统计等）</p>
+      </div>
+    </div>
+    <div class="option" data-choice="users" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>👥 用户管理</h3>
+        <p>学生/教师账号 CRUD、批量导入、启用/禁用、导出</p>
+      </div>
+    </div>
+    <div class="option" data-choice="topics" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>📋 选题管理</h3>
+        <p>选题库 CRUD、开启/关闭选题、查看各选题报名情况</p>
+      </div>
+    </div>
+    <div class="option" data-choice="audit" onclick="toggleSelect(this)">
+      <div class="letter">4</div>
+      <div class="content">
+        <h3>✅ 审核管理</h3>
+        <p>查看所有申请记录、审核通过/驳回、审核开关（在系统配置中控制）</p>
+      </div>
+    </div>
+    <div class="option" data-choice="config" onclick="toggleSelect(this)">
+      <div class="letter">5</div>
+      <div class="content">
+        <h3>⚙️ 系统配置</h3>
+        <p>选题开关、组队开关、审核开关、队伍人数限制、其他系统参数</p>
+      </div>
+    </div>
+    <div class="option" data-choice="teams" onclick="toggleSelect(this)">
+      <div class="letter">6</div>
+      <div class="content">
+        <h3>🚩 队伍管理</h3>
+        <p>查看所有队伍、解散管理、队伍成员详情</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <p>点击选择你觉得需要调整的模块，或者有没有想增减的功能？</p>
+</div>

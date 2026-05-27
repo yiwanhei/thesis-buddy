@@ -1,0 +1,68 @@
+<h2>管理员端设计方法对比</h2>
+<p class="subtitle">布局和配色两种维度的组合方案</p>
+
+<div class="section">
+  <h3>配色方案</h3>
+  <div class="options">
+    <div class="option" data-choice="light" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>浅色清爽</h3>
+        <p>白底 + 蓝色主色，类似 Element Plus / Ant Design 默认风格。清爽、专业、长时间使用不易疲劳。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="dark" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>深色科技</h3>
+        <p>深蓝/黑色底 + 亮蓝/青色强调。ECharts 图表在深色背景下更醒目，科技感强。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="mixed" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>混合（推荐）</h3>
+        <p>侧边栏深色 + 内容区浅色。兼顾导航辨识度 + 内容可读性。大多数企业后台都采用这种。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>布局方案</h3>
+  <div class="options">
+    <div class="option" data-choice="sidebar-fixed" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>固定侧边栏（经典）</h3>
+        <p>左侧 220px 固定导航，右侧内容区自适应。简单稳定，用户最熟悉。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="sidebar-collapsible" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>可折叠侧边栏（推荐）</h3>
+        <p>侧边栏可收起为图标模式，内容区更宽。适合大屏展示更多数据表格和图表。</p>
+      </div>
+    </div>
+    <div class="option" data-choice="top-nav" onclick="toggleSelect(this)">
+      <div class="letter">3</div>
+      <div class="content">
+        <h3>顶部导航</h3>
+        <p>导航在顶部，下方全宽内容区。适合模块较少（5个以下）的场景，但我们有7个。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>我的推荐组合</h3>
+  <div style="background:#f0f7ff;padding:16px;border-radius:8px;border:1px solid #d0e4ff;">
+    <p><strong>C（混合配色）+ 2（可折叠侧边栏）</strong></p>
+    <p>深色侧边栏导航清晰，浅色内容区阅读舒适。侧边栏可收起，给数据表格和图表留出更多横向空间。</p>
+  </div>
+</div>
+
+<div class="section">
+  <p>你偏好哪种组合？直接回复即可（比如 "C+2" 或 "A+1"）</p>
+</div>
