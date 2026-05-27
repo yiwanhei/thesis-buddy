@@ -8,6 +8,7 @@ import org.example.thesisbuddy.entity.StudentAccount;
 import org.example.thesisbuddy.service.student.StudentAuthService;
 import org.example.thesisbuddy.common.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,6 +17,9 @@ public class StudentAuthServiceImpl implements StudentAuthService {
 
     @Autowired
     private StudentDao studentDao;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Result login(StudentLoginDTO loginDTO) {
@@ -34,7 +38,7 @@ public class StudentAuthServiceImpl implements StudentAuthService {
             return Result.error("该账号未设置密码，请联系管理员");
         }
         
-        if (!dbPassword.equals(loginDTO.getPassword())) {
+        if (!passwordEncoder.matches(loginDTO.getPassword(), dbPassword)) {
             log.warn("密码错误，学号: {}", loginDTO.getAccount());
             return Result.error("密码错误");
         }
@@ -53,9 +57,9 @@ public class StudentAuthServiceImpl implements StudentAuthService {
     public Result updatePassword(PasswordUpdateDTO passwordDTO) {
         StudentAccount student = studentDao.selectById(passwordDTO.getStudentId());
         if (student == null) return Result.error("学生不存在");
-        if (!student.getPasswordHash().equals(passwordDTO.getOldPassword())) return Result.error("旧密码错误");
+        if (!passwordEncoder.matches(passwordDTO.getOldPassword(), student.getPasswordHash())) return Result.error("旧密码错误");
         
-        int rows = studentDao.updatePassword(passwordDTO.getStudentId(), passwordDTO.getNewPassword());
+        int rows = studentDao.updatePassword(passwordDTO.getStudentId(), passwordEncoder.encode(passwordDTO.getNewPassword()));
         return rows > 0 ? Result.success("密码修改成功") : Result.error("修改失败");
     }
 }

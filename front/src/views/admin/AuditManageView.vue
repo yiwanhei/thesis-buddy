@@ -133,7 +133,7 @@ async function fetchList() {
   } catch (e) { console.error(e) }
 }
 
-function changePage(p) { page.value = p; fetchList() }
+function changePage(p) { page.value = p; void fetchList() }
 
 async function review(item, status) {
   reviewItem.value = item
@@ -150,7 +150,7 @@ async function confirmReview() {
     if (res.data.code === 200) {
       showRemarkDialog.value = false
       showMessage(res.data.msg || '审核完成')
-      fetchList()
+      void fetchList()
     } else {
       showMessage(res.data.msg || '审核失败', 'error')
     }

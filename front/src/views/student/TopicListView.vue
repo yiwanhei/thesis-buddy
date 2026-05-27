@@ -61,7 +61,7 @@ const teamMessage = ref('')
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
-const selectType = (type) => { selectedType.value = type; currentPage.value = 1; loadTopics() }
+const selectType = (type) => { selectedType.value = type; currentPage.value = 1; void loadTopics() }
 
 const handleTeamSelect = async () => {
   const studentId = localStorage.getItem('studentId')
@@ -74,7 +74,7 @@ const handleTeamSelect = async () => {
         checkTeamStatus(res.data.data.team)
       } else alert('您是队员，请等待队长操作选题')
     } else {
-      if (confirm('您还没有队伍，是否前往创建或加入队伍？')) router.push('/team')
+      if (confirm('您还没有队伍，是否前往创建或加入队伍？')) void router.push('/team')
     }
   } catch (e) { alert('验证队伍状态失败') }
 }
@@ -113,13 +113,13 @@ const checkAppliedStatus = async () => {
 const getRemainingCount = (topic) => topic.remaining !== undefined ? topic.remaining : (topic.maxCapacity || 0)
 const formatResultForm = (r) => r ? r.replace(/,/g, '或') : '无'
 const applyTopic = (topic) => router.push({ path: '/application', query: { topicId: topic.topicId, type: selectedType.value } })
-const prevPage = () => { if (currentPage.value > 1) { currentPage.value--; loadTopics() } }
-const nextPage = () => { if (currentPage.value < totalPages.value) { currentPage.value++; loadTopics() } }
+const prevPage = () => { if (currentPage.value > 1) { currentPage.value--; void loadTopics() } }
+const nextPage = () => { if (currentPage.value < totalPages.value) { currentPage.value++; void loadTopics() } }
 
-onMounted(() => { loadTopics() })
+onMounted(() => { void loadTopics() })
 onActivated(() => {
   if (sessionStorage.getItem('needRefreshTopics') === 'true') {
-    sessionStorage.removeItem('needRefreshTopics'); loadTopics()
+    sessionStorage.removeItem('needRefreshTopics'); void loadTopics()
   }
 })
 

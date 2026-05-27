@@ -132,8 +132,8 @@ async function fetchList() {
   } catch (e) { console.error(e) }
 }
 
-function search() { page.value = 1; fetchList() }
-function changePage(p) { page.value = p; fetchList() }
+function search() { page.value = 1; void fetchList() }
+function changePage(p) { page.value = p; void fetchList() }
 
 function openAdd() {
   editing.value = false
@@ -158,7 +158,7 @@ async function save() {
     if (res.data.code === 200) {
       showDialog.value = false
       showMessage(editing.value ? '更新成功' : '添加成功')
-      fetchList()
+      void fetchList()
     } else {
       showMessage(res.data.msg || '操作失败', 'error')
     }

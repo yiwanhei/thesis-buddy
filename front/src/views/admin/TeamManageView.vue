@@ -110,7 +110,7 @@ async function fetchList() {
   } catch (e) { console.error(e) }
 }
 
-function changePage(p) { page.value = p; fetchList() }
+function changePage(p) { page.value = p; void fetchList() }
 
 async function showDetail(item) {
   detailTeam.value = item
@@ -129,7 +129,7 @@ async function dissolve(item) {
     if (res.data.code === 200) {
       detailTeam.value = null
       showMessage('队伍已解散')
-      fetchList()
+      void fetchList()
     } else {
       showMessage(res.data.msg || '解散失败', 'error')
     }

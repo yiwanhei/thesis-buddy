@@ -3,15 +3,17 @@ package org.example.thesisbuddy.service.impl.admin;
 import org.example.thesisbuddy.dao.StudentDao;
 import org.example.thesisbuddy.dao.TeacherDao;
 import org.example.thesisbuddy.dao.ClassDao;
+import org.example.thesisbuddy.dao.ApplicationDao;
 import org.example.thesisbuddy.dto.admin.UserAddDTO;
 import org.example.thesisbuddy.dto.admin.UserStatusDTO;
 import org.example.thesisbuddy.dto.admin.BatchImportDTO;
 import org.example.thesisbuddy.entity.StudentAccount;
 import org.example.thesisbuddy.entity.TeacherAccount;
 import org.example.thesisbuddy.entity.ClassInfo;
-import org.example.thesisbuddy.service.admin.AdminUserManageService;
 import org.example.thesisbuddy.common.Result;
+import org.example.thesisbuddy.service.admin.AdminUserManageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -26,13 +28,19 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
     
     @Autowired
     private ClassDao classDao;
+    
+    @Autowired
+    private ApplicationDao applicationDao;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Result addUser(UserAddDTO userDTO) {
         if ("student".equals(userDTO.getUserType())) {
             StudentAccount student = new StudentAccount();
             student.setAccount(userDTO.getAccount());
-            student.setPasswordHash("123456");
+            student.setPasswordHash(passwordEncoder.encode("123456"));
             student.setRealName(userDTO.getRealName());
             student.setGender(userDTO.getGender());
             student.setClassId(userDTO.getClassId());
@@ -43,7 +51,7 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
         } else if ("teacher".equals(userDTO.getUserType())) {
             TeacherAccount teacher = new TeacherAccount();
             teacher.setAccount(userDTO.getAccount());
-            teacher.setPasswordHash("123456");
+            teacher.setPasswordHash(passwordEncoder.encode("123456"));
             teacher.setRealName(userDTO.getRealName());
             teacher.setCampusId(userDTO.getCampusId());
             teacher.setTitle(userDTO.getTitle());
@@ -76,7 +84,7 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
         for (BatchImportDTO.StudentImportItem item : importDTO.getStudents()) {
             StudentAccount student = new StudentAccount();
             student.setAccount(item.getAccount());
-            student.setPasswordHash("123456");
+            student.setPasswordHash(passwordEncoder.encode("123456"));
             student.setRealName(item.getRealName());
             student.setGender(item.getGender());
             student.setClassId(item.getClassId());
@@ -147,5 +155,10 @@ public class AdminUserManageServiceImpl implements AdminUserManageService {
     @Override
     public Result listClasses() {
         return Result.success(classDao.selectAll());
+    }
+    
+    @Override
+    public Result getDashboardStats() {
+        return Result.success(applicationDao.selectDashboardStats());
     }
 }

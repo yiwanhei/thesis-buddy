@@ -46,7 +46,7 @@ async function handleLogin() {
     if (res.data.code === 200) {
       localStorage.setItem('adminToken', res.data.data.token)
       localStorage.setItem('adminInfo', JSON.stringify(res.data.data.admin))
-      router.push('/admin/dashboard')
+      void router.push('/admin/dashboard')
     } else {
       errorMsg.value = res.data.msg || '登录失败'
     }

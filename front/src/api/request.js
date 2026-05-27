@@ -32,7 +32,7 @@ request.interceptors.response.use(
             if (response.data && response.data.code === 401) {
                 localStorage.removeItem('adminToken')
                 localStorage.removeItem('adminInfo')
-                window.location.href = '/admin/login'
+                window.location.href = '/admin/login' // eslint-disable-line
             }
         }
         return response

@@ -84,7 +84,7 @@ const currentPageTitle = computed(() => {
 function logout() {
   localStorage.removeItem('adminToken')
   localStorage.removeItem('adminInfo')
-  router.push('/admin/login')
+  void router.push('/admin/login')
 }
 </script>
 

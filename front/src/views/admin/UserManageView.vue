@@ -185,7 +185,7 @@ function switchTab(tab) {
   userType.value = tab
   page.value = 1
   keyword.value = ''
-  fetchList()
+  void fetchList()
 }
 
 function search() {
@@ -251,8 +251,8 @@ async function batchImport() {
 }
 
 onMounted(() => {
-  fetchList()
-  fetchClasses()
+  void fetchList()
+  void fetchClasses()
 })
 </script>
 

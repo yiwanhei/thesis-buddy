@@ -197,10 +197,10 @@ const formatTime = (t) => t ? new Date(t).toLocaleString() : ''
 
 onMounted(() => {
   applyType.value = route.query.type || 'individual'
-  checkReservation()
-  loadTopicInfo()
-  loadTeachers()
-  if (applyType.value === 'team') loadTeamInfo()
+  void checkReservation()
+  void loadTopicInfo()
+  void loadTeachers()
+  if (applyType.value === 'team') void loadTeamInfo()
 })
 </script>
 

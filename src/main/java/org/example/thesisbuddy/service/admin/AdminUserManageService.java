@@ -26,4 +26,7 @@ public interface AdminUserManageService {
     
     // 查询班级列表
     Result listClasses();
+    
+    // 获取仪表盘统计数据
+    Result getDashboardStats();
 }

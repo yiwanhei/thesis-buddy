@@ -15,9 +15,6 @@ public class AdminUserManageController {
 
     @Autowired
     private AdminUserManageService adminUserManageService;
-    
-    @Autowired
-    private ApplicationDao applicationDao;
 
     // 新增学生/教师账号
     @PostMapping("/add")
@@ -67,6 +64,6 @@ public class AdminUserManageController {
     // 获取仪表盘统计数据
     @GetMapping("/dashboard")
     public Result dashboard() {
-        return Result.success(applicationDao.selectDashboardStats());
+        return adminUserManageService.getDashboardStats();
     }
 }
