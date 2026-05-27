@@ -1,0 +1,100 @@
+<h2>仪表盘页面原型</h2>
+<p class="subtitle">C+2 方案 - 深色侧边栏 + 浅色内容区 + 可折叠侧边栏</p>
+
+<div class="section">
+  <div style="display:flex;gap:0;border:1px solid #ccc;border-radius:8px;overflow:hidden;min-height:500px;">
+    <!-- 侧边栏 -->
+    <div style="width:200px;background:#1a1a2e;color:#fff;padding:16px 0;display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="padding:0 16px 20px;font-size:16px;font-weight:bold;">📚 论文选题系统</div>
+      <div style="padding:10px 16px;background:#16213e;color:#e94560;font-size:14px;">📊 仪表盘</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">📈 数据统计</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">👥 用户管理</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">📋 选题管理</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">✅ 审核管理</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">⚙️ 系统配置</div>
+      <div style="padding:10px 16px;color:#aaa;font-size:14px;">🚩 队伍管理</div>
+      <div style="margin-top:auto;padding:10px 16px;color:#aaa;font-size:12px;">👤 admin | 退出</div>
+    </div>
+    
+    <!-- 内容区 -->
+    <div style="flex:1;background:#f5f7fa;padding:24px;overflow:auto;">
+      <h3 style="margin:0 0 20px 0;color:#333;">仪表盘</h3>
+      
+      <!-- 指标卡片 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">学生总数</div>
+          <div style="font-size:28px;font-weight:bold;color:#e94560;">1,248</div>
+          <div style="color:#52c41a;font-size:12px;margin-top:4px;">↑ 较上月 +32</div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">教师总数</div>
+          <div style="font-size:28px;font-weight:bold;color:#1890ff;">86</div>
+          <div style="color:#52c41a;font-size:12px;margin-top:4px;">↑ 较上月 +5</div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">选题总数</div>
+          <div style="font-size:28px;font-weight:bold;color:#722ed1;">156</div>
+          <div style="color:#666;font-size:12px;margin-top:4px;">已启用 142</div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">队伍总数</div>
+          <div style="font-size:28px;font-weight:bold;color:#fa8c16;">89</div>
+          <div style="color:#666;font-size:12px;margin-top:4px;">组建中 12</div>
+        </div>
+      </div>
+      
+      <!-- 第二行指标 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">待审核申请</div>
+          <div style="font-size:28px;font-weight:bold;color:#ff4d4f;">23</div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">已确认选题</div>
+          <div style="font-size:28px;font-weight:bold;color:#52c41a;">341</div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="color:#666;font-size:12px;margin-bottom:4px;">未组队学生</div>
+          <div style="font-size:28px;font-weight:bold;color:#faad14;">67</div>
+        </div>
+      </div>
+      
+      <!-- 图表区 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="font-weight:bold;color:#333;margin-bottom:12px;">选题类别分布</div>
+          <div style="height:200px;background:#fafafa;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;">
+            [ ECharts 饼图 ]
+          </div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <div style="font-weight:bold;color:#333;margin-bottom:12px;">申请趋势（近7天）</div>
+          <div style="height:200px;background:#fafafa;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;">
+            [ ECharts 折线图 ]
+          </div>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);grid-column:span 2;">
+          <div style="font-weight:bold;color:#333;margin-bottom:12px;">各学院选题确认情况</div>
+          <div style="height:200px;background:#fafafa;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;">
+            [ ECharts 柱状图 ]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>设计说明</h3>
+  <ul>
+    <li>侧边栏 200px，可折叠为 64px 图标模式</li>
+    <li>指标卡片第一行 4 个（学生/教师/选题/队伍），第二行 3 个（待审核/已确认/未组队）</li>
+    <li>图表区 2 列布局，底部柱状图占满整行</li>
+    <li>所有卡片带轻微阴影，白色背景在 #f5f7fa 底色上形成层级</li>
+  </ul>
+</div>
+
+<div class="section">
+  <p>这个仪表盘布局感觉如何？如果有调整需求请告诉我。</p>
+</div>
