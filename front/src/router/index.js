@@ -83,6 +83,26 @@ const router = createRouter({
         },
       ],
     },
+
+    // ========== 教师端 ==========
+    {
+      path: '/teacher/login',
+      name: 'TeacherLogin',
+      component: () => import('../views/teacher/TeacherLoginView.vue'),
+    },
+    {
+      path: '/teacher',
+      name: 'TeacherLayout',
+      component: () => import('../views/teacher/TeacherLayout.vue'),
+      redirect: '/teacher/audit',
+      children: [
+        {
+          path: 'audit',
+          name: 'TeacherAudit',
+          component: () => import('../views/teacher/AuditView.vue'),
+        },
+      ],
+    },
   ],
 })
 
@@ -98,6 +118,20 @@ router.beforeEach((to, _from) => {
     const token = localStorage.getItem('adminToken')
     if (!token) {
       return '/admin/login'
+    }
+    return true
+  }
+
+  // 教师登录页 - 放行
+  if (to.path === '/teacher/login') {
+    return true
+  }
+
+  // 教师端 - 检查teacherToken
+  if (to.path.startsWith('/teacher')) {
+    const token = localStorage.getItem('teacherToken')
+    if (!token) {
+      return '/teacher/login'
     }
     return true
   }

@@ -16,6 +16,13 @@ request.interceptors.request.use(
                 config.headers.Authorization = 'Bearer ' + token
             }
         }
+        // 教师请求自动添加JWT Token
+        if (config.url && config.url.startsWith('/teacher/')) {
+            const token = localStorage.getItem('teacherToken')
+            if (token) {
+                config.headers.Authorization = 'Bearer ' + token
+            }
+        }
         return config
     },
     error => {
@@ -33,6 +40,14 @@ request.interceptors.response.use(
                 localStorage.removeItem('adminToken')
                 localStorage.removeItem('adminInfo')
                 window.location.href = '/admin/login' // eslint-disable-line
+            }
+        }
+        // 如果是教师请求且返回401，自动跳转到登录页
+        if (response.config.url && response.config.url.startsWith('/teacher/')) {
+            if (response.data && response.data.code === 401) {
+                localStorage.removeItem('teacherToken')
+                localStorage.removeItem('teacherInfo')
+                window.location.href = '/teacher/login' // eslint-disable-line
             }
         }
         return response

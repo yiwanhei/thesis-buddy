@@ -15,4 +15,7 @@ public interface TeacherAuditService {
 
     // 查看审核历史
     Result getAuditHistory(int teacherId);
+
+    // 获取统计数据（待审数、历史数）
+    Result getStats(int teacherId);
 }
