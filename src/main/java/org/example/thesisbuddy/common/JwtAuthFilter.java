@@ -18,7 +18,8 @@ public class JwtAuthFilter implements Filter {
 
     // 不需要认证的路径
     private static final String[] EXCLUDED_PATHS = {
-        "/api/admin/auth/login"
+        "/api/admin/auth/login",
+        "/api/teacher/auth/login"
     };
 
     @Override
@@ -29,8 +30,8 @@ public class JwtAuthFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         String uri = req.getRequestURI();
 
-        // 只拦截 /api/admin/ 开头的请求
-        if (!uri.startsWith("/api/admin/")) {
+        // 只拦截 /api/admin/ 和 /api/teacher/ 开头的请求
+        if (!uri.startsWith("/api/admin/") && !uri.startsWith("/api/teacher/")) {
             chain.doFilter(request, response);
             return;
         }
@@ -60,9 +61,14 @@ public class JwtAuthFilter implements Filter {
             return;
         }
 
-        // 将adminId设置到请求属性中
-        Integer adminId = jwtUtil.getAdminId(token);
-        req.setAttribute("adminId", adminId);
+        // 根据路径设置对应的用户ID到请求属性中
+        if (uri.startsWith("/api/admin/")) {
+            Integer adminId = jwtUtil.getAdminId(token);
+            req.setAttribute("adminId", adminId);
+        } else if (uri.startsWith("/api/teacher/")) {
+            Integer teacherId = jwtUtil.getTeacherId(token);
+            req.setAttribute("teacherId", teacherId);
+        }
 
         chain.doFilter(request, response);
     }

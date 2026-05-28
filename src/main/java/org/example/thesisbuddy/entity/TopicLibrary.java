@@ -12,4 +12,5 @@ public class TopicLibrary {
     private Integer maxCapacity;   // 最大人数
     private String status;         // open/closed
     private LocalDateTime createTime;
+    private Integer teacherId;     // 指导教师ID
 }

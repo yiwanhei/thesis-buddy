@@ -16,18 +16,31 @@ public class JwtUtil {
     );
     private static final long EXPIRATION = 24 * 60 * 60 * 1000L; // 24小时
 
-    // 生成Token
+    // 生成管理员Token
     public String generateToken(Integer adminId, String account) {
         return Jwts.builder()
                 .subject(String.valueOf(adminId))
                 .claim("account", account)
+                .claim("role", "admin")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(SECRET_KEY)
                 .compact();
     }
 
-    // 解析Token，返回Claims（含adminId和account）
+    // 生成教师Token
+    public String generateTeacherToken(Integer teacherId, String account) {
+        return Jwts.builder()
+                .subject(String.valueOf(teacherId))
+                .claim("account", account)
+                .claim("role", "teacher")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .signWith(SECRET_KEY)
+                .compact();
+    }
+
+    // 解析Token，返回Claims（含Id和account）
     public Claims parseToken(String token) {
         return Jwts.parser()
                 .verifyWith(SECRET_KEY)
@@ -48,6 +61,11 @@ public class JwtUtil {
 
     // 从Token中获取adminId
     public Integer getAdminId(String token) {
+        return Integer.parseInt(parseToken(token).getSubject());
+    }
+
+    // 从Token中获取teacherId
+    public Integer getTeacherId(String token) {
         return Integer.parseInt(parseToken(token).getSubject());
     }
 }

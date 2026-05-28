@@ -41,6 +41,49 @@
         JOIN topic_library tl ON ta.topic_id = tl.topic_id
         WHERE tl.teacher_id = #{teacherId} AND ta.application_status = 1
     </select>
+
+    <!-- 查询教师的待审核列表（带学生名、选题名，v2规则：查status=2审核中） -->
+    <select id="selectPendingByTeacherWithDetails" resultType="java.util.HashMap">
+        SELECT
+            ta.application_id,
+            ta.student_id,
+            s.real_name AS studentName,
+            s.account AS studentAccount,
+            ta.topic_id,
+            tl.topic_name AS topicName,
+            ta.team_id,
+            ta.apply_type,
+            ta.application_status,
+            ta.apply_time,
+            ta.remark
+        FROM thesis_application ta
+        JOIN topic_library tl ON ta.topic_id = tl.topic_id
+        LEFT JOIN student_account s ON ta.student_id = s.student_id
+        WHERE tl.teacher_id = #{teacherId} AND ta.application_status = 2
+        ORDER BY ta.apply_time DESC
+    </select>
+
+    <!-- 查询教师的审核历史（带学生名、选题名，status=0已驳回/3已通过） -->
+    <select id="selectHistoryByTeacherWithDetails" resultType="java.util.HashMap">
+        SELECT
+            ta.application_id,
+            ta.student_id,
+            s.real_name AS studentName,
+            s.account AS studentAccount,
+            ta.topic_id,
+            tl.topic_name AS topicName,
+            ta.team_id,
+            ta.apply_type,
+            ta.application_status,
+            ta.apply_time,
+            ta.review_time,
+            ta.remark
+        FROM thesis_application ta
+        JOIN topic_library tl ON ta.topic_id = tl.topic_id
+        LEFT JOIN student_account s ON ta.student_id = s.student_id
+        WHERE tl.teacher_id = #{teacherId} AND ta.application_status IN (0, 3)
+        ORDER BY ta.review_time DESC
+    </select>
     
     <update id="updateStatus">
         UPDATE thesis_application
@@ -74,12 +117,11 @@
         WHERE student_id = #{studentId} AND application_status = 1
     </update>
     
-    <!-- 释放队伍所有成员的预占记录 -->
+    <!-- 释放队伍所有成员的申请记录（status=1预占中或2审核中） -->
     <update id="releaseTeamAllReservations">
-        UPDATE thesis_application ta
-        JOIN team_member tm ON ta.student_id = tm.student_id
-        SET ta.application_status = 0, ta.remark = #{remark}
-        WHERE tm.team_id = #{teamId} AND ta.application_status = 1 AND ta.team_id = #{teamId}
+        UPDATE thesis_application
+        SET application_status = 0, remark = #{remark}
+        WHERE team_id = #{teamId} AND application_status IN (1, 2)
     </update>
     
     <!-- 查询学生的预占记录（按学生ID和状态） -->
@@ -197,6 +239,30 @@
         </where>
     </select>
     
+    <!-- 批量更新队伍下所有status=2的记录为已通过(status=3) -->
+    <update id="batchApproveByTeam">
+        UPDATE thesis_application
+        SET application_status = 3,
+            review_time = NOW(),
+            reviewer_id = #{reviewerId},
+            remark = #{remark}
+        WHERE team_id = #{teamId} AND application_status = 2
+    </update>
+    
+    <!-- 按学生ID更新申请记录（复用已有记录，避免唯一索引冲突） -->
+    <update id="updateByStudentId">
+        UPDATE thesis_application
+        SET topic_id = #{topicId},
+            team_id = #{teamId},
+            apply_type = #{applyType},
+            application_status = #{applicationStatus},
+            is_locked = #{isLocked},
+            apply_time = #{applyTime},
+            reserve_until = #{reserveUntil},
+            remark = NULL
+        WHERE student_id = #{studentId}
+    </update>
+
     <!-- 获取仪表盘统计数据 -->
     <select id="selectDashboardStats" resultType="java.util.HashMap">
         SELECT

@@ -50,9 +50,9 @@ public class ReserveReleaseTask {
     }
     
     /**
-     * 每60秒检查并清理过期队伍（创建超过30分钟且状态为forming）
+     * 每5分钟检查并清理过期队伍（创建超过30分钟且状态为forming）
      */
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelay = 300000)
     public void processExpiredTeams() {
         try {
             List<TeamInfo> expiredTeams = teamDao.selectExpiredTeams();
@@ -60,6 +60,8 @@ public class ReserveReleaseTask {
                 return;
             }
             for (TeamInfo team : expiredTeams) {
+                // 先释放该队伍的所有预占名额
+                applicationDao.releaseTeamAllReservations(team.getTeamId(), "过期队伍自动释放名额");
                 teamDao.deleteAllMembers(team.getTeamId());
                 teamDao.deleteTeam(team.getTeamId());
                 logger.info("清理过期队伍: teamId={}, captainId={}, createTime={}",

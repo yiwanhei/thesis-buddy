@@ -22,6 +22,11 @@ public interface ApplicationDao {
     
     List<ThesisApplication> selectPendingByTeacher(int teacherId);
     
+    List<Map<String, Object>> selectPendingByTeacherWithDetails(@Param("teacherId") int teacherId);
+
+    // 查询教师的审核历史（带学生名、选题名）
+    List<Map<String, Object>> selectHistoryByTeacherWithDetails(@Param("teacherId") int teacherId);
+
     int updateStatus(AuditDTO auditDTO);
     
     List<ThesisApplication> selectHistoryByTeacher(int teacherId);
@@ -87,6 +92,21 @@ public interface ApplicationDao {
     
     // 查询申请记录总数
     int countAllApplications(@Param("status") Integer status);
+
+    // 批量更新队伍下所有status=2的记录为已通过(status=3)
+    int batchApproveByTeam(@Param("teamId") Integer teamId,
+                           @Param("reviewerId") Integer reviewerId,
+                           @Param("remark") String remark);
+
+    // 按学生ID更新申请记录（复用已有记录，避免唯一索引冲突）
+    int updateByStudentId(@Param("studentId") Integer studentId,
+                          @Param("topicId") Integer topicId,
+                          @Param("teamId") Integer teamId,
+                          @Param("applyType") String applyType,
+                          @Param("applicationStatus") Integer applicationStatus,
+                          @Param("isLocked") Integer isLocked,
+                          @Param("applyTime") LocalDateTime applyTime,
+                          @Param("reserveUntil") LocalDateTime reserveUntil);
 
     // 获取仪表盘统计数据
     Map<String, Object> selectDashboardStats();

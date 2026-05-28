@@ -1,4 +1,4 @@
-package org.example.thesisbuddy.service.impl.student;
+ package org.example.thesisbuddy.service.impl.student;
 
 import org.example.thesisbuddy.dao.*;
 import org.example.thesisbuddy.dto.student.TeamCreateDTO;
@@ -117,8 +117,21 @@ public class StudentTeamServiceImpl implements StudentTeamService {
         if (topicEnabled && topicId != null) {
             // 选题开启：为 expectedMembers 个名额创建预占记录
             LocalDateTime deadline = LocalDateTime.now().plusMinutes(30);
-            // 先为实际成员创建预占
+            // 先为实际成员创建预占（检查并处理已有申请记录）
             for (Integer sid : actualMembers) {
+                // 检查该学生是否已有任何申请记录（不限状态）
+                ThesisApplication existing = applicationDao.selectByStudentId(sid);
+                if (existing != null) {
+                    Integer oldStatus = existing.getApplicationStatus();
+                    if (oldStatus != null && oldStatus == 3) {
+                        // 已通过状态不能重复申请
+                        return Result.error("该学生已有已确认的选题申请");
+                    }
+                    // 其他状态（0=已释放/过期，1=预占中，2=审核中）：UPDATE 复用已有记录
+                    applicationDao.updateByStudentId(sid, topicId, teamId, "team", 1, 0,
+                        LocalDateTime.now(), deadline);
+                    continue;
+                }
                 ThesisApplication app = new ThesisApplication();
                 app.setStudentId(sid);
                 app.setTopicId(topicId);
